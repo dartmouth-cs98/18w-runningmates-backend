@@ -1,0 +1,4 @@
+npm-debug.log*
+public/build
+node_modules
+.npm
