@@ -28,7 +28,11 @@ app.use(bodyParser.json());
 
 // default index route
 app.get('/', (req, res) => {
+<<<<<<< HEAD
   res.send('welcome to our runningmates site');
+=======
+  res.send('hi this is your Running mate');
+>>>>>>> aab6b96db1a2d613b6ad8d0a468c1be59937fae5
 });
 
 // START THE SERVER
