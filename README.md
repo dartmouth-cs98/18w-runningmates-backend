@@ -8,10 +8,15 @@ TODO:  descriptions of code organization and tools and libraries used
 ## Setup
 
 TODO: how to get the project dev environment up and running, npm install etc
+* Git clone this repo into your local directory
+
+### For Macs:
+* Install Homebrew
+* Install npm through homebrew.
+* Change directory into where the repo is located, and run `npm install`
 
 ## Deployment
-
-TODO: how to deploy the project
+* From the root of the repo directory on your local machine, run `npm run dev`
 
 ## Authors
 * Brian Francis
