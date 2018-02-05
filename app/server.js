@@ -4,9 +4,11 @@ import cors from 'cors';
 import path from 'path';
 import mongoose from 'mongoose';
 
+import apiRouter from './router';
+
 // initialize
 // DB Setup
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/cs52poll';
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/runningmates';
 mongoose.connect(mongoURI);
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
@@ -25,11 +27,13 @@ app.set('views', path.join(__dirname, '../app/views'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+app.use('/api', apiRouter);
+
 
 // default index route
 app.get('/', (req, res) => {
   res.send('welcome to our runningmates site');
-  //res.send('hi this is your Running mate');
+  // res.send('hi this is your Running mate');
 });
 
 // START THE SERVER
