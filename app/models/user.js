@@ -10,6 +10,7 @@ const UserSchema = new Schema({
   Age: Number,
   Location: String,
   email: { type: String, unique: true, lowercase: true },
+  username: { type: String, unique: true },
   password: String,
   token: String,
   data: [],
