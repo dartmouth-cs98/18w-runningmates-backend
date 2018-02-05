@@ -22,16 +22,16 @@ export const signup = (req, res, next) => {
 
   console.log('function was made');
   // Check that there is an email and a password
-  if (!email || !password) {
-    return res.status(422).send('You must provide email and password');
+  if (!username || !password) {
+    return res.status(422).send('You must provide username and password');
   }
 
   // Check if there exists a user with that email
-  User.findOne({ email })
+  User.findOne({ username })
   .then((found) => {
     if (!found) {
       const user = new User();
-      user.email = email;
+      user.username = username;
       user.password = password;
 
       user.save()
