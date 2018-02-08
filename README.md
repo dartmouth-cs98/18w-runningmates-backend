@@ -48,7 +48,7 @@ TODO: how to get the project dev environment up and running, npm install etc
 
 ## Deployment
 * Open a terminal window and run `mongod` 
-* In  separate terminal window from the root of the repo directory on your local machine, run `npm run dev`
+* In a separate terminal window from the root of the repo directory on your local machine, run `npm run dev`
 
 ## Authors
 * Brian Francis
