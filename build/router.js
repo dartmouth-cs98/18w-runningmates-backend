@@ -20,7 +20,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-// import * as UserStrava from './controllers/user_strava_controller';
+//import * as UserStrava from './controllers/user_strava_controller';
 var router = (0, _express.Router)();
 
 router.get('/', function (req, res) {
@@ -30,7 +30,7 @@ router.get('/', function (req, res) {
 // routes will go here
 router.post('/signin', _passport.requireSignin, Users.signin);
 router.post('/signup', Users.signup);
-// router.post('/stravaSignUp', UserStrava.getData);
+//router.post('/stravaSignUp', UserStrava.getData);
 router.get('/sign-s3', _s2.default);
 
 exports.default = router;
