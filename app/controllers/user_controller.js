@@ -50,16 +50,43 @@ export const signup = (req, res, next) => {
   });
 };
 
-
+// Manage sending back users
+/*
+  To get a list of users sorted by preferences, body must have parameters: location,
+  id
+*/
 export const getUsers = (req, res) => {
-  User.find()
-  .then((users) => {
-    // console.log(users);
-    res.json(users);
-  })
-  .catch((error) => {
-    res.json({ error });
-  });
+  if (('location' in req.body) && ('id' in req.body.id)) {
+    let id = req.body.id;
+    let location = req.body.location;
+    User.findOne({'id': id})
+    .then((user) => {
+      console.log(user);
+      preferences = user.preferences;
+
+      let maxDistance = user.preferences // Needs to be meters, convert from preferences.maxDistance
+      // location needs to be an array of floats [<long>, <lat>]
+      User.find({
+        loc: {
+          $near: location,
+          $maxDistance: maxDistance
+        }
+      })
+      .then((users) =>{
+        // DO SOMETHING WITH LIST OF NEARBY USERS
+        // Need to limit #users sent back
+        res.json(users);
+      })
+      .catch((error) => {
+        res.json({ error });
+      });
+
+      // user.Update({'location': })
+    })
+    .catch((error) => {
+      res.json({ error });
+    });
+  }
 };
 
 

@@ -15,5 +15,8 @@ router.post('/signin', requireSignin, Users.signin);
 router.post('/signup', Users.signup);
 router.post('/stravaSignUp', UserStrava.getData);
 router.get('/sign-s3', signS3);
+router.get('/users/:id'); // Get User
+router.post('/users/:id'); // Update User
+router.get('/users', Users.getUsers); // Get Users
 
 export default router;
