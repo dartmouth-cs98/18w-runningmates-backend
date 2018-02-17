@@ -19,6 +19,7 @@ export const signin = (req, res, next) => {
 export const signup = (req, res, next) => {
   const username = req.body.username;
   const password = req.body.password;
+  const email = req.body.email;
 
   console.log('function was made');
   // Check that there is an email and a password
@@ -33,6 +34,7 @@ export const signup = (req, res, next) => {
       const user = new User();
       user.username = username;
       user.password = password;
+      user.email = email;
 
       user.save()
         .then((result) => {
