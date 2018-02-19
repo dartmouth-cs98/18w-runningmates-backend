@@ -13,7 +13,11 @@ router.get('/', (req, res) => {
 // routes will go here
 router.post('/signin', requireSignin, Users.signin);
 router.post('/signup', Users.signup);
+
+// router.get('/stravaAuthenticate', UserStrava.getStravaRedirect);
+// router.get('/stravaSignUp', UserStrava.getStravaToken);
 router.post('/stravaSignUp', UserStrava.getData);
+
 router.get('/sign-s3', signS3);
 router.get('/users/:id'); // Get User
 router.post('/users/:id'); // Update User
