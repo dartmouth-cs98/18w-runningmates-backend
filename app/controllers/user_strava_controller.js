@@ -7,11 +7,22 @@ import config from '../config';
 
 export const getData = (req, res, next) => {
   const token = req.body.token;
-  let athlete = new UserStrava();
-  const strava = require('strava-v3');
-  let totalActivityCount = 0; 
+  const athlete = new UserStrava();
+  // const strava = require('strava-v3'); // Not necessary since you define it above
+  const totalActivityCount = 0;
+
+
+  getStravaStats(token, totalActivityCount, athlete)
+  .then((newtotalActivityCount) => {
+            // this function is executed after function1
+    getActivities(token, totalActivityCount, athlete);
+  })
+  .catch((error) => {
+    res.json({ error });
+  })
+  ;
   // let promise = new Promise(function(resolve, reject) {
-  //   console.log("in promise"); 
+  //   console.log("in promise");
   //   totalActivityCount = getStravaStats((token, totalActivityCount, athlete) => resolve());
   //   // setTimeout(() => resolve(1), 1000);
   // });
@@ -27,19 +38,18 @@ export const getData = (req, res, next) => {
   //     console.log("in then");
   //     getActivities(token, totalActivityCount, athlete);
   //   });
-
 };
 
-function saveAthlete (athlete){
-  console.log("printing new athlete");
+function saveAthlete(athlete) {
+  console.log('printing new athlete');
   console.log(athlete);
-  athlete.save(function (err, athlete) {
+  athlete.save((err, athlete) => {
     if (err) return console.error(err);
-    //res.json(athlete);
+    // res.json(athlete);
   });
 }
 
-function getAthletes (){
+function getAthletes() {
   console.log('here');
   UserStrava.find((err, athletes) => {
     console.log('here');
@@ -49,7 +59,7 @@ function getAthletes (){
   });
 }
 
-function getStravaAthlete (token, athlete){
+function getStravaAthlete(token, athlete) {
   strava.athlete.get({ id: token }, (err, payload, limits) => {
     if (!err) {
       const firstName = payload.firstname;
@@ -71,110 +81,105 @@ function getStravaAthlete (token, athlete){
 // });
     } else {
       console.log(err);
-      res.json({err});
+      res.json({ err });
     }
   });
-  return totalActivityCount; 
-
+  return totalActivityCount;
 }
 
-function getStravaStats (token, totalActivityCount, athlete){
+function getStravaStats(token, totalActivityCount, athlete) {
   // Basic athlete statistics
-  strava.athletes.stats({ id: token }, (err, payload, limits) => {
-    if (!err) {
-      console.log(payload);
-      //athlete.rRecentCount = payload.recent_run_totals.count;
-      // console.log(athlete.recentCount);
-      athlete.rRecentDistance = payload.recent_run_totals.distance;
-      athlete.rRecentMovingTime = payload.recent_run_totals.moving_time;
-      athlete.rTotalCount = payload.all_run_totals.count;
-      totalActivityCount = totalActivityCount + payload.all_run_totals.count + payload.all_ride_totals.count + payload.all_swim_totals.count; 
-      // console.log(athlete.totalCount);
-      console.log("inside");
-      console.log(totalActivityCount);
-      athlete.rTotalDistance = payload.all_run_totals.distance;
-      athlete.rTotalMovingTime = payload.all_run_totals.moving_time;
-      athlete.rTotalElapsedTime = payload.all_run_totals.elapsed_time;
-      athlete.rTotalElevationGain = payload.all_run_totals.elevation_gain;
-    } else {
-      console.log(err);
-      res.json({err});
-    }
-    return totalActivityCount;
+  return new Promise((fulfill, reject) => {
+     // do stuff
+    let newActivityTotal = totalActivityCount;
+    strava.athletes.stats({ id: token }, (err, payload, limits) => {
+      if (!err) {
+        console.log(payload);
+         // athlete.rRecentCount = payload.recent_run_totals.count;
+         // console.log(athlete.recentCount);
+        athlete.rRecentDistance = payload.recent_run_totals.distance;
+        athlete.rRecentMovingTime = payload.recent_run_totals.moving_time;
+        athlete.rTotalCount = payload.all_run_totals.count;
+        newActivityTotal = newActivityTotal + payload.all_run_totals.count + payload.all_ride_totals.count + payload.all_swim_totals.count;
+         // console.log(athlete.totalCount);
+        console.log('inside');
+        console.log(newActivityTotal);
+        athlete.rTotalDistance = payload.all_run_totals.distance;
+        athlete.rTotalMovingTime = payload.all_run_totals.moving_time;
+        athlete.rTotalElapsedTime = payload.all_run_totals.elapsed_time;
+        athlete.rTotalElevationGain = payload.all_run_totals.elevation_gain;
+      } else {
+        console.log(err);
+        reject(err);
+      }
+      fulfill(newActivityTotal);
+    });
   });
-  
 }
 
 function getStravaKOMS(token, athlete) {
-  strava.athletes.listKoms({id: token},function(err,payload,limits) {
-    if(!err) {
+  strava.athletes.listKoms({ id: token }, (err, payload, limits) => {
+    if (!err) {
         // console.log(payload);
         // res.json({payload});
-        let koms = new Array();
-        const results = Object.keys(payload);
-        for (let i = 0; i < results.length; i++ ){
-          let kom = {
-            id: payload[i].id,
-            name: payload[i].name,
-            elapsed_time: payload[i].elapsed_time,
-            moving_time: payload[i].moving_time,
-            date: payload[i].start_date, 
-            distance: payload[i].distance,
-          };
-          koms.push(kom);
-
-        }
-        athlete.koms = koms; 
+      const koms = new Array();
+      const results = Object.keys(payload);
+      for (let i = 0; i < results.length; i++) {
+        const kom = {
+          id: payload[i].id,
+          name: payload[i].name,
+          elapsed_time: payload[i].elapsed_time,
+          moving_time: payload[i].moving_time,
+          date: payload[i].start_date,
+          distance: payload[i].distance,
+        };
+        koms.push(kom);
+      }
+      athlete.koms = koms;
         // console.log('Koms');
-        // console.log(athlete); 
-    }
-    else {
-        console.log(err);
-        res.json({err});
+        // console.log(athlete);
+    } else {
+      console.log(err);
+      res.json({ err });
     }
   });
 }
 
 
 function getActivities(token, totalActivityCount, athlete) {
-  let pages = (totalActivityCount/200);
-  let remainder = pages % 1; 
-  if (remainder > 0 ){ pages = pages + 1;}
+  let pages = (totalActivityCount / 200);
+  const remainder = pages % 1;
+  if (remainder > 0) { pages += 1; }
   console.log(pages);
   console.log(remainder);
-  // take remainder or for pages + 1  
-  
-  for (var i = 0; i < pages; i++){
-    strava.athlete.listActivities({id:token, 'page':1, 'per_page':200},function(err,payload,limits) {
-      if(!err) {
-        var activities = new Array;
-        var results = Object.keys(payload);
-          //console.log(payload);
-          //console.log(aL.length);
+  // take remainder or for pages + 1
 
-          for (var i = 0; i < results.length; i++ ){
-            let activity = {
-              id: payload[i].id,
-              name: payload[i].name
-            }; 
-            activities.push(activity);
+  for (let i = 0; i < pages; i += 1) {
+    strava.athlete.listActivities({ id: token, page: 1, per_page: 200 }, (err, payload, limits) => {
+      if (!err) {
+        const activities = [];
+        const results = Object.keys(payload);
+          // console.log(payload);
+          // console.log(aL.length);
 
-          }
-          athlete.listActivities = activities; 
-          console.log('activities');
-          console.log(athlete.listActivities);
-      }
-      else {
-          console.log(err);
-          res.json({err});
+        for (let j = 0; j < results.length; j += 1) {
+          const activity = {
+            id: payload[j].id,
+            name: payload[j].name,
+          };
+          activities.push(activity);
+        }
+        athlete.listActivities = activities;
+        console.log('activities');
+        console.log(athlete.listActivities);
+      } else {
+        console.log(err);
       }
     });
   }
 }
 
 
-
-function getSegments(token, athlete) { 
+function getSegments(token, athlete) {
 
 }
-
