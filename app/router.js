@@ -17,10 +17,11 @@ router.post('/signup', Users.signup);
 // router.get('/stravaAuthenticate', UserStrava.getStravaRedirect);
 // router.get('/stravaSignUp', UserStrava.getStravaToken);
 router.post('/stravaSignUp', UserStrava.getData);
-
+router.post('/users/update', Users.updateUser);
 router.get('/sign-s3', signS3);
 router.get('/users/:id'); // Get User
 router.post('/users/:id'); // Update User
 router.get('/users', Users.getUsers); // Get Users
+
 
 export default router;
