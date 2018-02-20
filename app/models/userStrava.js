@@ -4,6 +4,11 @@ import bcrypt from 'bcrypt-nodejs';
 const UserStravaSchema = new Schema({
   id: Number,
   rmId: Number,
+  email: String, 
+  username: String, 
+  sex: String, 
+  firstName: String,
+  lastName: String,
   athlete_type: Number,
   rRecentCount: String,
   rRecentDistance: Number,
@@ -31,7 +36,7 @@ const UserStravaSchema = new Schema({
   sTotalElevationGain: Number,
   koms: [],
   listActivities: [{ id: String, name: String }],
-  listSegments: [{ title: String, id: String, count: Number, pr: String }],
+  listSegments:[{title: String, id: String, elapsedTime: Number, prRank: String, distance: Number, komRank: Number}]
 });
 
 
