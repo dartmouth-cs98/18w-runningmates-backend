@@ -34,7 +34,7 @@ function getStravaAthlete(token, athlete) {
         athlete.email = payload.email;
         athlete.username = payload.username;
         athlete.sex = payload.sex;
-        athlete.firstName = payload.firstname; 
+        athlete.firstName = payload.firstname;
         athlete.lastName = payload.lastname;
         console.log(athlete);
         fulfill(athlete);
@@ -55,42 +55,42 @@ function getStravaStats(token, totalActivityCount, athlete) {
     strava.athletes.stats({ access_token: token, id: athlete.id }, (err, payload, limits) => {
       if (!err) {
         console.log(payload);
-        console.log("inside");
-        
+        console.log('inside');
+
         newActivityTotal = newActivityTotal + payload.all_run_totals.count + payload.all_ride_totals.count + payload.all_swim_totals.count;
         console.log(newActivityTotal);
-        // run totals 
+        // run totals
         athlete.rTotalDistance = payload.all_run_totals.distance;
         athlete.rTotalMovingTime = payload.all_run_totals.moving_time;
         athlete.rTotalElapsedTime = payload.all_run_totals.elapsed_time;
         athlete.rTotalElevationGain = payload.all_run_totals.elevation_gain;
         athlete.rTotalCount = payload.all_run_totals.count;
-        // run recents 
+        // run recents
         athlete.rRecentDistance = payload.recent_run_totals.distance;
         athlete.rRecentMovingTime = payload.recent_run_totals.moving_time;
-        athlete.rRecentCount = payload.recent_run_totals.count; 
+        athlete.rRecentCount = payload.recent_run_totals.count;
 
-        // bike totals 
+        // bike totals
         athlete.bTotalDistance = payload.all_ride_totals.distance;
         athlete.bTotalMovingTime = payload.all_ride_totals.moving_time;
         athlete.bTotalElapsedTime = payload.all_ride_totals.elapsed_time;
         athlete.bTotalElevationGain = payload.all_ride_totals.elevation_gain;
         athlete.bTotalCount = payload.all_ride_totals.count;
-        // bike recents 
+        // bike recents
         athlete.bRecentDistance = payload.recent_ride_totals.distance;
         athlete.bRecentMovingTime = payload.recent_ride_totals.moving_time;
-        athlete.bRecentCount = payload.recent_ride_totals.count; 
+        athlete.bRecentCount = payload.recent_ride_totals.count;
 
-        // swim totals 
+        // swim totals
         athlete.sTotalDistance = payload.all_swim_totals.distance;
         athlete.sTotalMovingTime = payload.all_swim_totals.moving_time;
         athlete.sTotalElapsedTime = payload.all_swim_totals.elapsed_time;
         athlete.sTotalElevationGain = payload.all_swim_totals.elevation_gain;
         athlete.sTotalCount = payload.all_swim_totals.count;
-        // swim recents 
+        // swim recents
         athlete.sRecentDistance = payload.recent_swim_totals.distance;
         athlete.sRecentMovingTime = payload.recent_swim_totals.moving_time;
-        athlete.sRecentCount = payload.recent_swim_totals.count; 
+        athlete.sRecentCount = payload.recent_swim_totals.count;
       } else {
         console.log('we getting errors mate');
         console.log(err);
@@ -103,7 +103,7 @@ function getStravaStats(token, totalActivityCount, athlete) {
 }
 
 
-// * need to make this a promise as well for people with a lot of KOMs *  
+// * need to make this a promise as well for people with a lot of KOMs *
 function getStravaKOMS(token, athlete) {
   strava.athletes.listKoms({ id: token }, (err, payload, limits) => {
     if (!err) {
@@ -230,13 +230,13 @@ export const getData = (req, res, next) => {
       .then((newerAthlete) => {
         getSegments(newerAthlete, token)
         .then((newestAthlete) => {
-          saveAthlete(newestAthlete); 
+          saveAthlete(newestAthlete);
         })
         .catch((error) => {
           console.log('\n\nFAILED IN GET Segments\n\n');
           console.log(error);
           res.json({ error });
-        })
+        });
       })
       .catch((error) => {
         console.log('\n\nFAILED IN GET ACTIVITIES\n\n');
@@ -250,38 +250,35 @@ export const getData = (req, res, next) => {
     });
   })
   ;
- 
 };
 
 function listSegments(token, id) {
   const segments = [];
 
   return new Promise((fulfill, reject) => {
-    strava.activities.get({access_token: token, id: id},function(err,payload,limits) {
-      if(!err) { 
-        for (let segs = 0; segs < payload.segment_efforts.length; segs += 1){
-          
+    strava.activities.get({ access_token: token, id }, (err, payload, limits) => {
+      if (!err) {
+        for (let segs = 0; segs < payload.segment_efforts.length; segs += 1) {
           const segment = {
-            title: payload.segment_efforts[segs].name, 
-            id: payload.segment_efforts[segs].id, 
-            elapsedTime: payload.segment_efforts[segs].elapsed_time, 
-            prRank: payload.segment_efforts[segs].pr_rank, 
-            distance: payload.segment_efforts[segs].distance, 
-            komRank: payload.segment_efforts[segs].kom_rank 
+            title: payload.segment_efforts[segs].name,
+            id: payload.segment_efforts[segs].id,
+            elapsedTime: payload.segment_efforts[segs].elapsed_time,
+            prRank: payload.segment_efforts[segs].pr_rank,
+            distance: payload.segment_efforts[segs].distance,
+            komRank: payload.segment_efforts[segs].kom_rank,
           };
           console.log(segment);
           segments.push(segment);
         }
         fulfill(segments);
-      }
-      else {
-          console.log('\n\nDID NOT WORK IN UPDATING LIST OF Segments\n\n');
-          console.log(err);
-          res.json({err});
-          reject(err);
+      } else {
+        console.log('\n\nDID NOT WORK IN UPDATING LIST OF Segments\n\n');
+        console.log(err);
+        res.json({ err });
+        reject(err);
       }
     });
-  }); 
+  });
 
   // return new Promise((fulfill, reject) => {
   //   strava.athlete.listActivities({ access_token: token, page, per_page: 200 }, (err, payload, limits) => {
@@ -309,11 +306,11 @@ function listSegments(token, id) {
 
 function getSegments(athlete, token) {
   console.log('\ngetting segments\n');
-  //console.log(athlete);
+  // console.log(athlete);
   console.log(athlete.listActivities.length);
   console.log(Array.from(Array(athlete.listActivities.length).keys()));
-  console.log(athlete.listActivities[20].id);
-  listSegments(token, 173576701); 
+  // console.log(athlete.listActivities[20].id);
+  // listSegments(token, 173576701);
 
   return new Promise((fulfill, reject) => {
     const promises = Array.from(Array(athlete.listActivities.length).keys()).map((x) => { return listSegments(token, athlete.listActivities[x].id); });

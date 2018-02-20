@@ -23,8 +23,8 @@ var UserSchema = new _mongoose.Schema({
   gender: String,
   age: Number,
   location: {
-    type: { type: String },
-    coordinates: []
+    type: [],
+    index: { type: '2dsphere', sparse: true }
   },
   email: { type: String, unique: true, lowercase: true },
   username: { type: String, unique: true },
@@ -46,6 +46,7 @@ var UserSchema = new _mongoose.Schema({
     virtuals: true
   }
 });
+UserSchema.index({ location: '2dsphere' });
 
 /* eslint-disable */
 
