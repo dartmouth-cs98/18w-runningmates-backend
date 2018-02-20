@@ -33,6 +33,7 @@ var signin = exports.signin = function signin(req, res, next) {
 var signup = exports.signup = function signup(req, res, next) {
   var username = req.body.username;
   var password = req.body.password;
+  var email = req.body.email;
 
   console.log('function was made');
   // Check that there is an email and a password
@@ -46,6 +47,7 @@ var signup = exports.signup = function signup(req, res, next) {
       var user = new _user2.default();
       user.username = username;
       user.password = password;
+      user.email = email;
 
       user.save().then(function (result) {
         res.send({ token: tokenForUser(result) });
@@ -60,13 +62,39 @@ var signup = exports.signup = function signup(req, res, next) {
   });
 };
 
+// Manage sending back users
+/*
+  To get a list of users sorted by preferences, body must have parameters: location,
+  id
+*/
 var getUsers = exports.getUsers = function getUsers(req, res) {
-  _user2.default.find().then(function (users) {
-    // console.log(users);
-    res.json(users);
-  }).catch(function (error) {
-    res.json({ error: error });
-  });
+  if ('location' in req.body && 'id' in req.body.id) {
+    var id = req.body.id;
+    var location = req.body.location;
+    _user2.default.findOne({ 'id': id }).then(function (user) {
+      console.log(user);
+      preferences = user.preferences;
+
+      var maxDistance = user.preferences; // Needs to be meters, convert from preferences.maxDistance
+      // location needs to be an array of floats [<long>, <lat>]
+      _user2.default.find({
+        loc: {
+          $near: location,
+          $maxDistance: maxDistance
+        }
+      }).then(function (users) {
+        // DO SOMETHING WITH LIST OF NEARBY USERS
+        // Need to limit #users sent back
+        res.json(users);
+      }).catch(function (error) {
+        res.json({ error: error });
+      });
+
+      // user.Update({'location': })
+    }).catch(function (error) {
+      res.json({ error: error });
+    });
+  }
 };
 
 /*eslint-enable*/
