@@ -52,6 +52,46 @@ export const signup = (req, res, next) => {
   });
 };
 
+export const updateUser = (req, res, next) => {
+  console.log("updating user");
+
+  const username = req.body.username;
+  const email = req.body.email;
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  const imageURL = req.body.imageURL;
+  const bio = req.body.bio;
+  const gender = req.body.gender;
+  const age = req.body.age;
+  const location = req.body.location;
+
+  User.findOne({username})
+  .then((found) => {
+    if (found) {
+      console.log("user exists");
+      User.update({ username },
+      {
+        firstName: firstName,
+        lastName: lastName,
+        imageURL: imageURL,
+        bio: bio,
+        gender: gender,
+        age: age,
+        location: location,
+      }).then((user) => {
+        console.log("successfully updated user");
+        res.send('updated user');
+      }).catch((error) => {
+        console.log("error signing up user");
+        res.status(500).json({error});
+      });
+    } else {
+      console.log("user does not exist");
+      res.json("User does not exist");
+    }
+  });
+}
+
 // Manage sending back users
 /*
   To get a list of users sorted by preferences, body must have parameters: location,
