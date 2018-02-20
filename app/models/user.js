@@ -10,8 +10,8 @@ const UserSchema = new Schema({
   gender: String,
   age: Number,
   location: {
-    type: { type: String },
-    coordinates: [],
+    type: [Number],  // [<longitude>, <latitude>]
+    index: '2d',
   },
   email: { type: String, unique: true, lowercase: true },
   username: { type: String, unique: true },

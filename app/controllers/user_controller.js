@@ -55,7 +55,7 @@ export const signup = (req, res, next) => {
 export const updateUser = (req, res, next) => {
   console.log("updating user");
 
-  const username = req.body.username;
+  const username = req.params.username;
   const email = req.body.email;
   const firstName = req.body.firstName;
   const lastName = req.body.lastName;
@@ -98,6 +98,7 @@ export const updateUser = (req, res, next) => {
   id
 */
 export const getUsers = (req, res) => {
+
   if (('location' in req.body) && ('id' in req.body.id)) {
     let id = req.body.id;
     let location = req.body.location;
@@ -106,10 +107,10 @@ export const getUsers = (req, res) => {
       console.log(user);
       preferences = user.preferences;
 
-      let maxDistance = user.preferences // Needs to be meters, convert from preferences.maxDistance
+      let maxDistance = 10000 // Needs to be meters, convert from preferences.maxDistance
       // location needs to be an array of floats [<long>, <lat>]
       User.find({
-        loc: {
+        location: {
           $near: location,
           $maxDistance: maxDistance
         }
