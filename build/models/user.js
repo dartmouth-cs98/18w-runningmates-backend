@@ -22,7 +22,10 @@ var UserSchema = new _mongoose.Schema({
   bio: String,
   gender: String,
   age: Number,
-  location: String,
+  location: {
+    type: { type: String },
+    coordinates: []
+  },
   email: { type: String, unique: true, lowercase: true },
   username: { type: String, unique: true },
   password: String,

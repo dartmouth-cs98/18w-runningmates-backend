@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcrypt-nodejs';
 
 const UserStravaSchema = new Schema({
-  id: Number, 
+  id: Number,
   rmId: Number,
   athlete_type: Number,
   rRecentCount: String,
@@ -30,8 +30,8 @@ const UserStravaSchema = new Schema({
   sTotalElapsedTime: Number,
   sTotalElevationGain: Number,
   koms: [],
-  listActivities: [{id: String, name: String}],
-  listSegments:[{title: String, id: String, count: Number, pr: String}],
+  listActivities: [{ id: String, name: String }],
+  listSegments: [{ title: String, id: String, count: Number, pr: String }],
 });
 
 
