@@ -11,7 +11,8 @@ const UserSchema = new Schema({
   age: Number,
   location: {
     type: [],
-    index: { type: '2dsphere', sparse: true}
+    index: { type: '2dsphere', sparse: true },
+    default: [0, 0],
   },
   email: { type: String, unique: true, lowercase: true },
   username: { type: String, unique: true },
@@ -33,7 +34,7 @@ const UserSchema = new Schema({
     virtuals: true,
   },
 });
-UserSchema.index({location: '2dsphere'});
+UserSchema.index({ location: '2dsphere' });
 
 /* eslint-disable */
 
