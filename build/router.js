@@ -33,10 +33,15 @@ router.get('/', function (req, res) {
 // routes will go here
 router.post('/signin', _passport.requireSignin, Users.signin);
 router.post('/signup', Users.signup);
+
+// router.get('/stravaAuthenticate', UserStrava.getStravaRedirect);
+// router.get('/stravaSignUp', UserStrava.getStravaToken);
 router.post('/stravaSignUp', UserStrava.getData);
+// router.post('/users/update', Users.updateUser);
 router.get('/sign-s3', _s2.default);
-router.get('/users/:id'); // Get User
-router.post('/users/:id'); // Update User
+router.get('/users/:username'); // Get User
+router.post('/users/:username', Users.updateUser); // Update User
 router.get('/users', Users.getUsers); // Get Users
+
 
 exports.default = router;

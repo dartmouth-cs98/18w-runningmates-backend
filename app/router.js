@@ -17,10 +17,10 @@ router.post('/signup', Users.signup);
 // router.get('/stravaAuthenticate', UserStrava.getStravaRedirect);
 // router.get('/stravaSignUp', UserStrava.getStravaToken);
 router.post('/stravaSignUp', UserStrava.getData);
-router.post('/users/update', Users.updateUser);
+// router.post('/users/update', Users.updateUser);
 router.get('/sign-s3', signS3);
-router.get('/users/:id'); // Get User
-router.post('/users/:id'); // Update User
+router.get('/users/:username'); // Get User
+router.post('/users/:username', Users.updateUser); // Update User
 router.get('/users', Users.getUsers); // Get Users
 // below isnt working 
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id 
