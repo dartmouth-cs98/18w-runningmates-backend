@@ -111,7 +111,7 @@ export const getUsers = (req, res) => {
     let location = req.body.location;
     User.findOne({'username': username})
     .then((user) => {
-      console.log(user);
+      console.log(user, 'I FIND A USER');
       // preferences = user.preferences;
 
       // IN METERS
@@ -131,14 +131,14 @@ export const getUsers = (req, res) => {
         res.json(users);
       })
       .catch((error) => {
-        console.log(error);
+        console.log(error, 'query ERRORRRR');
         res.json({ error });
       });
 
       // user.Update({'location': })
     })
     .catch((error) => {
-      console.log(error);
+      console.log(error, 'find one ERROR');
       res.json({ error });
     });
   }
