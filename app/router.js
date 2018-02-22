@@ -22,6 +22,8 @@ router.get('/sign-s3', signS3);
 router.get('/users/:username'); // Get User
 router.post('/users/:username', Users.updateUser); // Update User
 router.get('/users', Users.getUsers); // Get Users
+// below isnt working 
+// router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id 
 
 
 export default router;

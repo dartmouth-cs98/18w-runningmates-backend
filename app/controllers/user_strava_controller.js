@@ -1,6 +1,7 @@
 import jwt from 'jwt-simple';
 import strava from 'strava-v3';
 import UserStrava from '../models/userStrava';
+import User from '../models/user';
 
 import config from '../config';
 
@@ -9,10 +10,10 @@ function saveAthlete(athlete) {
   console.log('\n\n\nprinting new athlete');
   console.log(athlete);
 
-  // athlete.save((err, athlete) => {
-  //   if (err) return console.error(err);
-  //   // res.json(athlete);
-  // });
+  athlete.save((err, athlete) => {
+    if (err) return console.error(err);
+    // res.json(athlete);
+  });
 }
 
 function getAthletes() {
@@ -25,10 +26,24 @@ function getAthletes() {
   });
 }
 
-function getStravaAthlete(token, athlete) {
+// not working 
+export const getAthlete = (req, res, next) => {
+  const id = req.body.id; 
+  UserStrava.find({id: id}, (err, athlete) => {
+    if (err){
+      res.json(err);
+    } else {
+      res.json(athlete);
+    }
+  });
+}
+
+function getStravaAthlete(token, athlete, user) { 
   return new Promise((fulfill, reject) => {
     strava.athlete.get({ access_token: token }, (err, payload, limits) => {
       if (!err) {
+        let objects = [];
+        console.log(payload);
         athlete.id = payload.id;
         athlete.athlete_type = payload.athlete_type;
         athlete.email = payload.email;
@@ -36,8 +51,19 @@ function getStravaAthlete(token, athlete) {
         athlete.sex = payload.sex;
         athlete.firstName = payload.firstname;
         athlete.lastName = payload.lastname;
+
+        user.firstName = payload.firstname;
+        user.lastName = payload.lastname;
+        user.gender = payload.sex;
+        user.email = payload.email; 
+        // user.thirdPartyIds.push(payload.id); 
+        user.username = payload.username; 
+        console.log("XXXXXXXXX");
+        console.log(user); 
         console.log(athlete);
-        fulfill(athlete);
+        objects[0] = user; 
+        objects[1] = athlete; 
+        fulfill(objects);
       } else {
         console.log(err);
         reject(err);
@@ -47,18 +73,19 @@ function getStravaAthlete(token, athlete) {
   });
 }
 
-function getStravaStats(token, totalActivityCount, athlete) {
+function getStravaStats(token, totalActivityCount, objects) {
   // Basic athlete statistics
   return new Promise((fulfill, reject) => {
      // do stuff
     let newActivityTotal = totalActivityCount;
-    strava.athletes.stats({ access_token: token, id: athlete.id }, (err, payload, limits) => {
+    strava.athletes.stats({ access_token: token, id: objects[1].id }, (err, payload, limits) => {
       if (!err) {
         console.log(payload);
         console.log('inside');
 
         newActivityTotal = newActivityTotal + payload.all_run_totals.count + payload.all_ride_totals.count + payload.all_swim_totals.count;
         console.log(newActivityTotal);
+
         // run totals
         athlete.rTotalDistance = payload.all_run_totals.distance;
         athlete.rTotalMovingTime = payload.all_run_totals.moving_time;
@@ -91,6 +118,44 @@ function getStravaStats(token, totalActivityCount, athlete) {
         athlete.sRecentDistance = payload.recent_swim_totals.distance;
         athlete.sRecentMovingTime = payload.recent_swim_totals.moving_time;
         athlete.sRecentCount = payload.recent_swim_totals.count;
+        // run totals 
+        objects[1].rTotalDistance = payload.all_run_totals.distance;
+        objects[1].rTotalMovingTime = payload.all_run_totals.moving_time;
+        objects[1].rTotalElapsedTime = payload.all_run_totals.elapsed_time;
+        objects[1].rTotalElevationGain = payload.all_run_totals.elevation_gain;
+        objects[1].rTotalCount = payload.all_run_totals.count;
+        // run recents 
+        objects[1].rRecentDistance = payload.recent_run_totals.distance;
+        objects[1].rRecentMovingTime = payload.recent_run_totals.moving_time;
+        objects[1].rRecentCount = payload.recent_run_totals.count; 
+
+        // bike totals 
+        objects[1].bTotalDistance = payload.all_ride_totals.distance;
+        objects[1].bTotalMovingTime = payload.all_ride_totals.moving_time;
+        objects[1].bTotalElapsedTime = payload.all_ride_totals.elapsed_time;
+        objects[1].bTotalElevationGain = payload.all_ride_totals.elevation_gain;
+        objects[1].bTotalCount = payload.all_ride_totals.count;
+        // bike recents 
+        objects[1].bRecentDistance = payload.recent_ride_totals.distance;
+        objects[1].bRecentMovingTime = payload.recent_ride_totals.moving_time;
+        objects[1].bRecentCount = payload.recent_ride_totals.count; 
+
+        // swim totals 
+        objects[1].sTotalDistance = payload.all_swim_totals.distance;
+        objects[1].sTotalMovingTime = payload.all_swim_totals.moving_time;
+        objects[1].sTotalElapsedTime = payload.all_swim_totals.elapsed_time;
+        objects[1].sTotalElevationGain = payload.all_swim_totals.elevation_gain;
+        objects[1].sTotalCount = payload.all_swim_totals.count;
+        // swim recents 
+        objects[1].sRecentDistance = payload.recent_swim_totals.distance;
+        objects[1].sRecentMovingTime = payload.recent_swim_totals.moving_time;
+        objects[1].sRecentCount = payload.recent_swim_totals.count; 
+
+        // user data update 
+        objects[0].data.totalMilesRun = payload.all_run_totals.distance;
+        objects[0].data.totalElevationClimbed = payload.all_run_totals.elevation_gain;
+        objects[0].data.AveragePace = payload.all_run_totals.distance/payload.all_run_totals.moving_time;
+
       } else {
         console.log('we getting errors mate');
         console.log(err);
@@ -219,14 +284,24 @@ export const getStravaToken = (req, res) => {
 export const getData = (req, res, next) => {
   const token = req.body.token;
   const athlete = new UserStrava();
+  const user = new User();
   const totalActivityCount = 0;
-  getStravaAthlete(token, athlete)
-  .then((newAthlete) => {
-    getStravaStats(token, totalActivityCount, newAthlete)
+  console.log(token);
+  getStravaAthlete(token, athlete, user)
+  .then((newObjects) => {
+    // res.json(newObjects[0]); 
+    getStravaStats(token, totalActivityCount, newObjects)
     .then((newtotalActivityCount) => {
               // this function is executed after function1
       console.log('made it here???');
-      getActivities(token, newtotalActivityCount, newAthlete)
+      // respond with the user object 
+      res.json(newObjects[0]);
+      // save the user object to the database 
+      newObjects[0].save((err, user) => {
+        if (err) return console.error(err);
+        // res.json(athlete);
+      });
+      getActivities(token, newtotalActivityCount, newObjects[1])
       .then((newerAthlete) => {
         getSegments(newerAthlete, token)
         .then((newestAthlete) => {
@@ -256,6 +331,7 @@ function listSegments(token, id) {
   const segments = [];
 
   return new Promise((fulfill, reject) => {
+
     strava.activities.get({ access_token: token, id }, (err, payload, limits) => {
       if (!err) {
         for (let segs = 0; segs < payload.segment_efforts.length; segs += 1) {
@@ -302,6 +378,36 @@ function listSegments(token, id) {
   //     }
   //   });
   // });
+
+    strava.activities.get({access_token: token, id: id},function(err,payload,limits) {
+      if(!err) { 
+        if (payload.segment_efforts.length){
+          for (let segs = 0; segs < payload.segment_efforts.length; segs += 1){
+          
+            const segment = {
+              title: payload.segment_efforts[segs].name, 
+              id: payload.segment_efforts[segs].id, 
+              elapsedTime: payload.segment_efforts[segs].elapsed_time, 
+              prRank: payload.segment_efforts[segs].pr_rank, 
+              distance: payload.segment_efforts[segs].distance, 
+              komRank: payload.segment_efforts[segs].kom_rank 
+            };
+            console.log(segment);
+            segments.push(segment);
+          }
+          fulfill(segments);
+        } else {
+          fulfill(segments);
+        }
+      }
+      else {
+          console.log('\n\nDID NOT WORK IN UPDATING LIST OF Segments\n\n');
+          console.log(err);
+          res.json({err});
+          reject(err);
+      }
+    });
+  }); 
 }
 
 function getSegments(athlete, token) {
