@@ -1,12 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
+Object.defineProperty(exports, '__esModule', {
+  value: true,
 });
 
-var _dotenv = require('dotenv');
+const _dotenv = require('dotenv');
 
-var _dotenv2 = _interopRequireDefault(_dotenv);
+const _dotenv2 = _interopRequireDefault(_dotenv);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -20,5 +20,5 @@ exports.default = {
   strava_access_token: process.env.STRAVA_ACCESS_TOKEN,
   strava_client_id: process.env.STRAVA_CLIENT_ID,
   strava_client_secret: process.env.STRAVA_CLIENT_SECRET,
-  strava_redirect_uri: process.env.STRAVA_REDIRECT_URI
+  strava_redirect_uri: process.env.STRAVA_REDIRECT_URI,
 };

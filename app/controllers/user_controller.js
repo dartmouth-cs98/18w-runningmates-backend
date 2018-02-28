@@ -111,34 +111,29 @@ export const getUsers = (req, res) => {
     let location = req.query.location;
     User.findOne({'username': username})
     .then((user) => {
-      console.log(user);
+      console.log(user, 'I FIND A USER');
       // preferences = user.preferences;
 
       // IN METERS
       let maxDistance = 10000; // Needs to be meters, convert from preferences.maxDistance
       // location needs to be an array of floats [<long>, <lat>]
-      User.find({
-        location: {
-          $near: location,
-          $maxDistance: maxDistance
-        }
-      })
+      let query = User.find();
+      query.where('location').near({ center: {type: 'Point', coordinates: location}, maxDistance: maxDistance })
+
       .then((users) =>{
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Need to limit #users sent back
         res.json(users);
       })
       .catch((error) => {
-        console.log("first");
-        console.log(error);
+        console.log(error, 'query ');
         res.json({ error });
       });
 
       // user.Update({'location': })
     })
     .catch((error) => {
-      console.log("second");
-      console.log(error);
+      console.log(error, 'find one ERROR');
       res.json({ error });
     });
   } else {
