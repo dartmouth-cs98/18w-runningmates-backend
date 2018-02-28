@@ -17,23 +17,20 @@ export const signin = (req, res, next) => {
 
 /*eslint-disable*/
 export const signup = (req, res, next) => {
-  const username = req.body.username;
-  const password = req.body.password;
   const email = req.body.email;
+  const password = req.body.password;
   const coords = [64.7511, 147.3494];
 
-  console.log('function was made');
   // Check that there is an email and a password
-  if (!username || !password) {
-    return res.status(422).send('You must provide username and password');
+  if (!email || !password) {
+    return res.status(422).send('You must provide email and password');
   }
 
   // Check if there exists a user with that email
-  User.findOne({ username })
+  User.findOne({ email })
   .then((found) => {
     if (!found) {
       const user = new User();
-      user.username = username;
       user.password = password;
       user.email = email;
       // user.location = {"coordinates": coords};
@@ -49,6 +46,7 @@ export const signup = (req, res, next) => {
     } else {
       console.log("already exists");
       res.json('User already exists');
+      res.status(422).send('You must provide email and password');
     }
   })
   .catch((error) => {
@@ -60,8 +58,6 @@ export const signup = (req, res, next) => {
 export const updateUser = (req, res, next) => {
   console.log("updating user");
 
-  const username = req.params.username;
-  console.log(username);
   const email = req.body.email;
   const firstName = req.body.firstName;
   const lastName = req.body.lastName;
@@ -71,11 +67,11 @@ export const updateUser = (req, res, next) => {
   const age = req.body.age;
   const location = req.body.location;
 
-  User.findOne({username})
+  User.findOne({email})
   .then((found) => {
     if (found) {
       console.log("user exists");
-      User.update({ username },
+      User.update({ email },
       {
         firstName: firstName,
         lastName: lastName,
@@ -106,10 +102,10 @@ export const updateUser = (req, res, next) => {
 */
 export const getUsers = (req, res) => {
 
-  if (('location' in req.body) && ('username' in req.body)) {
-    let username = req.body.username;
+  if (('location' in req.body) && ('email' in req.body)) {
+    let email = req.body.email;
     let location = req.body.location;
-    User.findOne({'username': username})
+    User.findOne({'email': email})
     .then((user) => {
       console.log(user, 'I FIND A USER');
       // preferences = user.preferences;
