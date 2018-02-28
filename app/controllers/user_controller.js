@@ -11,6 +11,7 @@ function tokenForUser(user) {
 }
 
 export const signin = (req, res, next) => {
+  console.log("signing in");
   res.send({ token: tokenForUser(req.user), user: req.user });
 };
 
@@ -105,10 +106,9 @@ export const updateUser = (req, res, next) => {
   id
 */
 export const getUsers = (req, res) => {
-
-  if (('location' in req.body) && ('username' in req.body)) {
-    let username = req.body.username;
-    let location = req.body.location;
+  if (('location' in req.query) && ('username' in req.query)) {
+    let username = req.query.username;
+    let location = req.query.location;
     User.findOne({'username': username})
     .then((user) => {
       console.log(user);
@@ -129,6 +129,7 @@ export const getUsers = (req, res) => {
         res.json(users);
       })
       .catch((error) => {
+        console.log("first");
         console.log(error);
         res.json({ error });
       });
@@ -136,9 +137,13 @@ export const getUsers = (req, res) => {
       // user.Update({'location': })
     })
     .catch((error) => {
+      console.log("second");
       console.log(error);
       res.json({ error });
     });
+  } else {
+    console.log("user does not exist");
+    res.json("user does not exist");
   }
 };
 
