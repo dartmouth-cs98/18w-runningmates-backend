@@ -7,8 +7,8 @@ import config from '../config';
 
 
 function saveAthlete(athlete) {
-  console.log('\n\n\nprinting new athlete');
-  console.log(athlete);
+  console.log('\n\n\nprinting new athlete//// cleaning');
+  //console.log(athlete);
 
   athlete.save((err, athlete) => {
     if (err) return console.error(err);
@@ -274,81 +274,78 @@ export const getData = (req, res, next) => {
       getActivities(token, newtotalActivityCount, newObjects[1])
       .then((newerAthlete) => {
         getSegments(newerAthlete, token)
-        .then((newestAthlete) => {
-          saveAthlete(newestAthlete);
-          // console.log(newestAthlete);
+        .then((newSegList) => {
+          cleanSegments(newerAthlete,newSegList)
+          .then((newestAthlete) => {
+            saveAthlete(newestAthlete);
+          });
         })
         .catch((error) => {
-          console.log('\n\nFAILED IN GET Segments\n\n');
+          console.log('\n\nFAILED IN clean segments \n\n');
           console.log(error);
           res.json({ error });
         });
       })
       .catch((error) => {
-        console.log('\n\nFAILED IN GET ACTIVITIES\n\n');
+        console.log('\n\nFAILED IN get segments \n\n');
         console.log(error);
         res.json({ error });
       })
       ;
     })
     .catch((error) => {
+      console.log('\n\nFAILED IN get Activities  \n\n');
+      console.log(error);
       res.json({ error });
     });
   })
   ;
 };
 
+
+function cleanSegments(athlete, newSegList){
+  const listofIds = []; 
+  const listToAdd = [];
+  return new Promise((fulfill, reject) => {
+    newSegList.forEach( function(value, index) { 
+      // let id = athlete.listSegments[index].id;
+      // athlete.listSegments.forEach( function (value, index){
+      //   if (id === athlete)
+      // });
+      console.log(listofIds.indexOf(newSegList[index].id));
+      if (listofIds.indexOf(newSegList[index].id) != -1) {
+        const objIndex = listToAdd.findIndex((obj => obj.id == newSegList[index].id));
+        console.log("Before update: ", listToAdd[objIndex]);
+        listToAdd[objIndex].count += 1;
+        if (newSegList[index].elapsedTime < listToAdd[objIndex].elapsedTime){
+          listToAdd[objIndex].elapsedTime = newSegList[index].elapsedTime; 
+          listToAdd[objIndex].komRank = newSegList[index].komRank;
+        }
+        console.log("After update: ", listToAdd[objIndex]);
+
+      } else {
+        listofIds.push(newSegList[index].id);
+        listToAdd.push(value);
+        console.log("in the else");
+        // console.log(listofIds);
+      }
+      //console.log(newSegList[index].id);
+      // console.log(index);
+    });
+
+    //console.log(listofIds);
+
+    athlete.listSegments = listToAdd;
+    console.log(athlete.listSegments);
+    fufill(athlete); 
+  });
+
+}
+
 function listSegments(token, id) {
   const segments = [];
 
   return new Promise((fulfill, reject) => {
-
-    // strava.activities.get({ access_token: token, id }, (err, payload, limits) => {
-    //   if (!err) {
-    //     for (let segs = 0; segs < payload.segment_efforts.length; segs += 1) {
-    //       const segment = {
-    //         title: payload.segment_efforts[segs].name,
-    //         id: payload.segment_efforts[segs].id,
-    //         elapsedTime: payload.segment_efforts[segs].elapsed_time,
-    //         prRank: payload.segment_efforts[segs].pr_rank,
-    //         distance: payload.segment_efforts[segs].distance,
-    //         komRank: payload.segment_efforts[segs].kom_rank,
-    //       };
-    //       console.log(segment);
-    //       segments.push(segment);
-    //     }
-    //     fulfill(segments);
-    //   } else {
-    //     console.log('\n\nDID NOT WORK IN UPDATING LIST OF Segments\n\n');
-    //     console.log(err);
-    //     res.json({ err });
-    //     reject(err);
-    //   }
-    // });
-  // });
-
-  // return new Promise((fulfill, reject) => {
-  //   strava.athlete.listActivities({ access_token: token, page, per_page: 200 }, (err, payload, limits) => {
-  //     if (!err) {
-  //   // const activities = [];
-  //       const results = Object.keys(payload);
-  //     // console.log(payload);
-  //     // console.log(aL.length);
-  //       for (let j = 0; j < results.length; j += 1) {
-  //         const activity = {
-  //           id: payload[j].id,
-  //           name: payload[j].name,
-  //         };
-  //         activities.push(activity);
-  //       }
-  //       fulfill(activities);
-  //     } else {
-  //       console.log('\n\nDID NOT WORK IN UPDATING LIST OF ACTIVITIES\n\n');
-  //       console.log(err);
-  //       reject(err);
-  //     }
-  //   });
-  // });
 
     strava.activities.get({access_token: token, id: id},function(err,payload,limits) {
       if(!err) { 
@@ -357,11 +354,12 @@ function listSegments(token, id) {
           
             const segment = {
               title: payload.segment_efforts[segs].name, 
-              id: payload.segment_efforts[segs].id, 
+              id: payload.segment_efforts[segs].segment.id, 
               elapsedTime: payload.segment_efforts[segs].elapsed_time, 
               prRank: payload.segment_efforts[segs].pr_rank, 
-              distance: payload.segment_efforts[segs].distance, 
-              komRank: payload.segment_efforts[segs].kom_rank 
+              distance: payload.segment_efforts[segs].segment.distance, 
+              komRank: payload.segment_efforts[segs].kom_rank,
+              count: 1
             };
             //console.log(segment);
             segments.push(segment);
@@ -396,16 +394,19 @@ function getSegments(athlete, token) {
       const newSegmentList = segmentList.reduce((prev, curr) => {
         return prev.concat(curr);
       });
-      // console.log('\n\n NEW Segment LIST', newSegmentList);
+      //console.log('\n\n NEW Segment LIST', newSegmentList);
 
-      const list = athlete.listSegments.concat(newSegmentList);
+      // ****** const list = athlete.listSegments.concat(newSegmentList);
+      
       // console.log('segments updated');
       // console.log('THIS IS THE NEW LIST of segments : ', list);
-      athlete.listSegments = list;
+
+      // ***** athlete.listSegments = list;
       // console.log(athlete);
-      fulfill(athlete);
+      fulfill(newSegmentList);
     })
     .catch((error) => {
+      console.log("the error is in get segments");
       console.log(error);
       reject(error);
     });
