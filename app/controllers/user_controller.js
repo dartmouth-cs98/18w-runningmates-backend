@@ -3,7 +3,7 @@ import jwt from 'jwt-simple';
 import User from '../models/user';
 import config from '../config';
 
-
+const maxUsers = 15;
 // encodes a new token for a user object
 function tokenForUser(user) {
   const timestamp = new Date().getTime();
@@ -33,6 +33,7 @@ export const signup = (req, res, next) => {
       const user = new User();
       user.password = password;
       user.email = email;
+      user.location = coords;
       // user.location = {"coordinates": coords};
 
       user.save()
@@ -56,7 +57,6 @@ export const signup = (req, res, next) => {
 };
 
 export const updateUser = (req, res, next) => {
-  console.log("updating user");
 
   const email = req.body.email;
   const firstName = req.body.firstName;
@@ -70,7 +70,6 @@ export const updateUser = (req, res, next) => {
   User.findOne({email})
   .then((found) => {
     if (found) {
-      console.log("user exists");
       User.update({ email },
       {
         firstName: firstName,
@@ -95,6 +94,45 @@ export const updateUser = (req, res, next) => {
   });
 }
 
+
+/*
+Helper sorting function to create a sorted list of users with their reason for matching.
+Inputs: Users - list of users nearby; Preferences - User's preferences
+Output: sortedUsers - [{userObject, matchReasonString}] - The sorted list of users based on a specific user's preferenceså
+*/
+function sortUsers(users, preferences) {
+  let sortedUsers =[];
+
+  return new Promise((fulfill, reject) => {
+      for (let key in users) {
+          user = users[key]
+
+          if (sortedUsers.length >= maxUsers) {
+            break;
+          }
+          // Sort by gender
+          if ((preferences.gender == "Female") || (preferences.gender == "Male")) {
+            if (user.gender !==  preferences.gender) {
+              continue;
+            }
+          };
+
+          // If not in age range
+          if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {
+              continue;
+            }
+
+          // Conditional for pace here
+          sortedUsers.append({user: user, matchReason: "They're totally rad, brah."});
+      };
+
+      if (sortedUsers.length < 1){
+        reject("We couldn't find people in your area to fit your preferences.");
+      }
+      fulfill(sortedUsers);
+
+});
+}
 // Manage sending back users
 /*
   To get a list of users sorted by preferences, body must have parameters: location,
@@ -105,13 +143,13 @@ export const getUsers = (req, res) => {
   if (('location' in req.body) && ('email' in req.body)) {
     let email = req.body.email;
     let location = req.body.location;
+    // let preference = req.body.preferences
     User.findOne({'email': email})
     .then((user) => {
-      console.log(user, 'I FIND A USER');
       // preferences = user.preferences;
 
       // IN METERS
-      let maxDistance = 10000; // Needs to be meters, convert from preferences.maxDistance
+      let maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
       // location needs to be an array of floats [<long>, <lat>]
       let query = User.find();
       query.where('location').near({ center: {type: 'Point', coordinates: location}, maxDistance: maxDistance })
@@ -119,7 +157,12 @@ export const getUsers = (req, res) => {
       .then((users) =>{
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Need to limit #users sent back
-        res.json(users);
+        sortUsers(users, preferences)
+        .then((sortedUsers) => {
+          res.json(sortedUsers);
+        })
+
+        // res.json(users);
       })
       .catch((error) => {
         console.log(error, 'query ');

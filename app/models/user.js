@@ -15,14 +15,17 @@ const UserSchema = new Schema({
     default: [0, 0],
   },
   swipes: { count: Number, date: String },
+  mates: [],
+  potentialMates: [],
+  blockedMates: [],
   seenProfiles: [{ userID: Number, date: String }],
   email: { type: String, unique: true, lowercase: true },
   password: String,
   token: String,
   preferences: {
     gender: String,
-    pace: [],
-    age: [],
+    pace: [], // Range [slowestPace, fastestPace]
+    age: [], // Range [minAge, maxAge]
     proximity: Number,
   },
   thirdPartyIds: {},
