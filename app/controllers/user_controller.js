@@ -11,6 +11,7 @@ function tokenForUser(user) {
 }
 
 export const signin = (req, res, next) => {
+  console.log("signing in");
   res.send({ token: tokenForUser(req.user), user: req.user });
 };
 
@@ -140,10 +141,10 @@ function sortUsers(users, preferences) {
 */
 export const getUsers = (req, res) => {
 
-  if (('location' in req.body) && ('email' in req.body)) {
-    let email = req.body.email;
-    let location = req.body.location;
-    // let preference = req.body.preferences
+  if (('location' in req.query) && ('email' in req.query)) {
+    let email = req.query.email;
+    let location = req.query.location;
+    let preference = req.query.preferences
     User.findOne({'email': email})
     .then((user) => {
       // preferences = user.preferences;
@@ -175,6 +176,9 @@ export const getUsers = (req, res) => {
       console.log(error, 'find one ERROR');
       res.json({ error });
     });
+  } else {
+    console.log("user does not exist");
+    res.json("user does not exist");
   }
 };
 
