@@ -11,7 +11,7 @@ function tokenForUser(user) {
 }
 
 export const signin = (req, res, next) => {
-  console.log("signing in");
+  console.log('signing in');
   res.send({ token: tokenForUser(req.user), user: req.user });
 };
 
@@ -20,7 +20,7 @@ export const signin = (req, res, next) => {
 export const signup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  const coords = [64.7511, 147.3494];
+  const coords = [-147.349442, 64.751114];
 
   // Check that there is an email and a password
   if (!email || !password) {
@@ -35,6 +35,8 @@ export const signup = (req, res, next) => {
       user.password = password;
       user.email = email;
       user.location = coords;
+
+      console.log('\n\n\n HERE IS LOCATION \n\n', user.location)
       // user.location = {"coordinates": coords};
 
       user.save()
