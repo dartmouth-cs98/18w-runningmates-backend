@@ -14,11 +14,20 @@ const UserSchema = new Schema({
     index: { type: '2dsphere', sparse: true },
     default: [0, 0],
   },
+  swipes: { count: Number, date: String },
+  mates: [],
+  potentialMates: [],
+  blockedMates: [],
+  seenProfiles: [{ userID: Number, date: String }],
   email: { type: String, unique: true, lowercase: true },
-  username: { type: String, unique: true },
   password: String,
   token: String,
-  preferences: {},
+  preferences: {
+    gender: String,
+    pace: [], // Range [slowestPace, fastestPace]
+    age: [], // Range [minAge, maxAge]
+    proximity: Number,
+  },
   thirdPartyIds: {},
   data: {
     totalMilesRun: Number,
