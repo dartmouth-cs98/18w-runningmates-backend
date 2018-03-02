@@ -58,7 +58,6 @@ export const signup = (req, res, next) => {
 };
 
 export const updateUser = (req, res, next) => {
-
   const email = req.body.email;
   const firstName = req.body.firstName;
   const lastName = req.body.lastName;
@@ -67,7 +66,8 @@ export const updateUser = (req, res, next) => {
   const gender = req.body.gender;
   const age = req.body.age;
   const location = req.body.location;
-
+  const preferences = req.body.preferences;
+  
   User.findOne({email})
   .then((found) => {
     if (found) {
@@ -80,6 +80,7 @@ export const updateUser = (req, res, next) => {
         gender: gender,
         age: age,
         location: location,
+        preferences: preferences,
       }).then((user) => {
         console.log("successfully updated user");
         res.send('updated user');
