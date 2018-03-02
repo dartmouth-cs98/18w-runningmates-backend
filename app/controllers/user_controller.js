@@ -154,8 +154,7 @@ export const getUsers = (req, res) => {
       let maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
       // location needs to be an array of floats [<long>, <lat>]
       let query = User.find();
-      console.log(location);
-      query.where('location').near({ center: {type: 'Point', coordinates: location}, maxDistance: maxDistance })
+      query.where('location').near({ center: {type: 'Point', coordinates: location}, maxDistance: maxDistance, spherical: true })
 
       .then((users) =>{
         // DO SOMETHING WITH LIST OF NEARBY USERS
