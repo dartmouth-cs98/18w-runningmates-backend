@@ -24,7 +24,7 @@ export const signup = (req, res, next) => {
 
   // Check that there is an email and a password
   if (!email || !password) {
-    return res.status(422).send('You must provide email and password');
+    return res.status(421).send('You must provide email and password');
   }
 
   // Check if there exists a user with that email
@@ -36,7 +36,6 @@ export const signup = (req, res, next) => {
       user.email = email;
       user.location = coords;
 
-      console.log('\n\n\n HERE IS LOCATION \n\n', user.location)
       // user.location = {"coordinates": coords};
 
       user.save()
@@ -45,12 +44,11 @@ export const signup = (req, res, next) => {
         })
         .catch((error) => {
           console.log(error);
-          res.json({ error: 'first one' });
+          res.status(420).send('Error saving user');
+
         });
     } else {
-      console.log("already exists");
-      res.json('User already exists');
-      res.status(422).send('You must provide email and password');
+      res.status(422).send('User already exists');
     }
   })
   .catch((error) => {
