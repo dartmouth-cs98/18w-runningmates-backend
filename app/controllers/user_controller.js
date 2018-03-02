@@ -104,11 +104,11 @@ Output: sortedUsers - [{userObject, matchReasonString}] - The sorted list of use
 */
 function sortUsers(users, preferences) {
   let sortedUsers =[];
-
+  console.log(users);
   return new Promise((fulfill, reject) => {
       for (let key in users) {
           user = users[key]
-
+          console.log(user);
           if (sortedUsers.length >= maxUsers) {
             break;
           }
@@ -164,6 +164,7 @@ export const getUsers = (req, res) => {
         .then((sortedUsers) => {
           res.json(sortedUsers);
         })
+        .catch((error))
 
         // res.json(users);
       })
