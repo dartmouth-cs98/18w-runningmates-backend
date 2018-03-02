@@ -147,7 +147,7 @@ export const getUsers = (req, res) => {
     let location = req.query.location;
     User.findOne({'email': email})
     .then((user) => {
-      console.log('user: ', user);
+      console.log('user: ', user.preferences);
       preferences = user.preferences;
 
       // IN METERS
