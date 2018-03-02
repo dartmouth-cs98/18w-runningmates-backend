@@ -165,7 +165,7 @@ export const getUsers = (req, res) => {
       .then((users) =>{
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Need to limit #users sent back
-        sortUsers(userEmail, users, preferences)
+        sortUsers(email, users, preferences)
         .then((sortedUsers) => {
           res.json(sortedUsers);
         })
