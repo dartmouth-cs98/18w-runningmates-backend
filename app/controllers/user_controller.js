@@ -120,7 +120,7 @@ function sortUsers(users, preferences) {
           };
 
           // If not in age range
-          if (!(preferences.age[0] < user.age) || !(preferences.age[1] > user.age)) {
+          if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {
               continue;
             }
 
@@ -129,6 +129,7 @@ function sortUsers(users, preferences) {
       };
 
       if (sortedUsers.length < 1){
+        console.log('FAILED ADDING USERS');
         reject("We couldn't find people in your area to fit your preferences.");
       }
       fulfill(sortedUsers);
@@ -163,8 +164,10 @@ export const getUsers = (req, res) => {
         .then((sortedUsers) => {
           res.json(sortedUsers);
         })
-        .catch((error))
-
+        .catch((error) => {
+          console.log('sorting error: ', error);
+          res.json(error);
+        })
         // res.json(users);
       })
       .catch((error) => {
