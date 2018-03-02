@@ -132,6 +132,7 @@ function sortUsers(users, preferences) {
         console.log('FAILED ADDING USERS');
         reject("We couldn't find people in your area to fit your preferences.");
       }
+      console.log(sortedUsers);
       fulfill(sortedUsers);
 
 });
