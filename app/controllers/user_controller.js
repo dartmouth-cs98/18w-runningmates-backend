@@ -102,15 +102,19 @@ Helper sorting function to create a sorted list of users with their reason for m
 Inputs: Users - list of users nearby; Preferences - User's preferences
 Output: sortedUsers - [{userObject, matchReasonString}] - The sorted list of users based on a specific user's preferenceså
 */
-function sortUsers(users, preferences) {
+function sortUsers(userEmail, users, preferences) {
   let sortedUsers =[];
   console.log(users);
   return new Promise((fulfill, reject) => {
       for (let key in users) {
-          user = users[key]
+          let user = users[key]
           console.log(user);
           if (sortedUsers.length >= maxUsers) {
             break;
+          }
+
+          if (userEmail == user.email) {
+            continue;
           }
           // Sort by gender
           if ((preferences.gender == "Female") || (preferences.gender == "Male")) {
@@ -161,7 +165,7 @@ export const getUsers = (req, res) => {
       .then((users) =>{
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Need to limit #users sent back
-        sortUsers(users, preferences)
+        sortUsers(userEmail, users, preferences)
         .then((sortedUsers) => {
           res.json(sortedUsers);
         })
