@@ -148,7 +148,7 @@ export const getUsers = (req, res) => {
     User.findOne({'email': email})
     .then((user) => {
       console.log('user: ', user.preferences);
-      preferences = user.preferences;
+      let preferences = user.preferences;
 
       // IN METERS
       let maxDistance = 10000; // Needs to be meters, convert from preferences.proximity

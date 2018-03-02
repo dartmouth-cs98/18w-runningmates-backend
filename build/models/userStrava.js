@@ -49,7 +49,7 @@ var UserStravaSchema = new _mongoose.Schema({
   sTotalElevationGain: Number,
   koms: [],
   listActivities: [{ id: String, name: String }],
-  listSegments: [{ title: String, id: String, elapsedTime: Number, prRank: String, distance: Number, komRank: Number }]
+  listSegments: [{ title: String, id: String, elapsedTime: Number, prRank: String, distance: Number, komRank: Number, count: Number }]
 });
 
 var UserStrava = _mongoose2.default.model('UserStrava', UserStravaSchema);

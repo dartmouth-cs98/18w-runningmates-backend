@@ -39,9 +39,11 @@ router.post('/signup', Users.signup);
 router.post('/stravaSignUp', UserStrava.getData);
 // router.post('/users/update', Users.updateUser);
 router.get('/sign-s3', _s2.default);
-router.get('/users/:username'); // Get User
-router.post('/users/:username', Users.updateUser); // Update User
+router.get('/users/:email'); // Get User
+router.post('/users/:email', Users.updateUser); // Update User
 router.get('/users', Users.getUsers); // Get Users
+// below isnt working
+// router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
 
 exports.default = router;
