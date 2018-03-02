@@ -67,7 +67,7 @@ export const updateUser = (req, res, next) => {
   const age = req.body.age;
   const location = req.body.location;
   const preferences = req.body.preferences;
-  
+
   User.findOne({email})
   .then((found) => {
     if (found) {
@@ -145,10 +145,9 @@ export const getUsers = (req, res) => {
   if (('location' in req.query) && ('email' in req.query)) {
     let email = req.query.email;
     let location = req.query.location;
-    let preference = req.query.preferences
     User.findOne({'email': email})
     .then((user) => {
-      // preferences = user.preferences;
+      preferences = user.preferences;
 
       // IN METERS
       let maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
