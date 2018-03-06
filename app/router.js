@@ -22,6 +22,7 @@ router.get('/sign-s3', signS3);
 router.get('/users/:email'); // Get User
 router.post('/users/:email', Users.updateUser); // Update User
 router.get('/users', Users.getUsers); // Get Users
+router.post('/match', Users.match);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
