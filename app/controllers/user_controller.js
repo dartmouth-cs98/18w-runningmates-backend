@@ -4,6 +4,110 @@ import User from '../models/user';
 import config from '../config';
 
 const maxUsers = 15;
+
+// update potentialMates 
+// update mates 
+
+export const match = (req, res, next) => { 
+  const targetId = req.body.targetId; 
+  const userId = req.body.userId; 
+
+  User.findOne({ _id: targetId})
+  .then((found) => {
+    if (found) {
+      console.log(found); 
+      // if its a match 
+      if (found.potentialMates.includes(userId)){
+        res.send({ response: "match"});
+        // updated current active user 
+        User.findOne({_id: userId})
+        .then((found) => {
+          if (found) {
+            const userMates = found.mates; 
+            userMates.push(targetId); 
+            User.update({_id: userId},
+            {
+              mates: userMates
+            }).then((user) => {
+              console.log("successfully updated mates ");
+              //res.send('updated user');
+            }).catch((error) => {
+              console.log("error updating user");
+              console.log(error);
+              //res.status(500).json({error});
+            });
+          } else {
+            console.log("user does not exist");
+            //res.json("User does not exist");
+          }
+        });
+        // update user they matched with 
+        // delete from potentials 
+        const targetPotentialMates = found.potentialMates; 
+        const index = targetPotentialMates.indexOf(userId);
+        if (index !== -1) {
+            targetPotentialMates.splice(index, 1);
+        }
+        // mates 
+        const targetMates = found.mates; 
+        targetMates.push(userId);
+        // update 
+        User.findOne({ _id: targetId})
+        .then((found) => {
+          if (found) {
+            User.update({ _id: targetId},
+            {
+              mates: targetMates,
+              potentialMates: targetPotentialMates
+            }).then((user) => {
+              console.log("successfully updated user");
+              // res.send('updated user');
+            }).catch((error) => {
+              console.log("error updating user");
+              console.log(error);
+              // res.status(500).json({error});
+            });
+          } else {
+            console.log("user does not exist");
+            /// res.json("User does not exist");
+          }
+        });
+      } else {
+        res.send({ response: "no"});
+
+        // update active user 
+        
+        User.findOne({_id: userId})
+        .then((found) => {
+          if (found) {
+            const userPotentialMates = found.potentialMates; 
+            userPotentialMates.push(targetId); 
+            User.update({_id: userId},
+            {
+              potentialMates: userPotentialMates
+            }).then((user) => {
+              console.log("successfully updated user");
+              console.log(user);
+              //res.send('updated user');
+            }).catch((error) => {
+              console.log("error updating user");
+              console.log(error);
+              //res.status(500).json({error});
+            });
+          } else {
+            console.log("user does not exist");
+            // res.json("User does not exist");
+          }
+        });
+      }
+    } else {
+      console.log("user does not exist");
+      res.json("User does not exist");
+    }
+  });
+};
+
+
 // encodes a new token for a user object
 function tokenForUser(user) {
   const timestamp = new Date().getTime();
