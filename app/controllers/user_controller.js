@@ -250,6 +250,21 @@ function sortUsers(userEmail, users, preferences) {
   To get a list of users sorted by preferences, body must have parameters: location,
   id
 */
+
+export const getUser = (req, res) => {
+  const email = req.body.email;
+  User.findOne({'email': email})
+  .then((user) => {
+    res.json(user);
+  })
+  .catch((error) => {
+    console.log(error, 'find one ERROR');
+    res.json({ error });
+  });
+
+};
+
+
 export const getUsers = (req, res) => {
 
   if (('location' in req.query) && ('email' in req.query)) {
