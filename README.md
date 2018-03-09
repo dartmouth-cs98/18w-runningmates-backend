@@ -1,5 +1,5 @@
 # RunningMates Backend Service
-TODO: short project description, some sample screenshots or mockups
+
 ### Project Description
 RunningMates is a mobile application that utilizes various third-party APIs to compile personal fitness data to connect individuals looking for new connections with others who share their passions in various outdoor activities. The application will use state-of-art data analytic techniques to provide users with the best recommendations of events and people in their area, based on their skill levels and preferences.
 
@@ -7,13 +7,34 @@ This repository contains the backend solution for the app, including the current
 
 ## Architecture
 
-TODO:  descriptions of code organization and tools and libraries used
-
 ### Database & Server
 The current database is built using MongoDB. The module Mongoose is used an object model that connects the database to the application, with custom controllers for interacting with various data objects.
-The server was built using the Express web framework for managing CRUD-style requests to the database.
 
+The server was built using the Express web framework for managing CRUD-style requests to the database. The application leverages Heroku as a server to host our mongo database.
+
+Heroku site: https://running-mates.herokuapp.com/
+
+### Code Organization
+```
+./app   \\ RunningMates Backend Source
+    ./controllers \\ Contains actions done on User instances
+        user_controller.js  \\ User action functions
+        user_strava_controller.js \\ userStrava and User action functions
+    ./models    Mongoose model Initializers
+        chats.js    \\ Chat model
+        events.js   \\ Events model
+        user.js     \\ Users model and Mongoose Location Indexer
+        userStrava.js   \\ userStrava model for Strava data maintenance
+    ./services
+        passport.js \\ User authentication and token functions
+        s3.js   \\ Amazon signed url request functionality
+    config.js   \\ Manage environmental variables. In production, env variables are stored in Heroku
+    router.js   \\ API request route manager
+    server.js   \\ Initializes server
+```
 ### Dependencies
+```
+"aws-sdk": "^2.193.0",
     "babel-cli": "^6.24.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
@@ -29,11 +50,10 @@ The server was built using the Express web framework for managing CRUD-style req
     "mongoose": "^5.0.3",
     "passport": "^0.4.0",
     "passport-jwt": "^3.0.1",
-    "passport-local": "^1.0.0"
-
+    "passport-local": "^1.0.0",
+    "strava-v3": "^1.14.0"
+```
 ## Setup
-
-TODO: how to get the project dev environment up and running, npm install etc
 * Git clone this repo into your local directory.
 
 ### For Macs:
