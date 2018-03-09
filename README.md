@@ -66,7 +66,7 @@ Heroku site: https://running-mates.herokuapp.com/
 * With the `mongodb` binaries now installed, on terminal run `mkdir -p /data/db` to create the mongo database directory.
 *  On OSX if you get a permissions error you need to make sure that the database dir is writable. Run `sudo chown $USER /data/db` in terminal if this is an issue.
 
-## Deployment
+## Local Deployment
 * Open a terminal window and run `mongod` 
 * In a separate terminal window from the root of the repo directory on your local machine, run `npm run dev`
 
