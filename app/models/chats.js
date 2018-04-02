@@ -2,9 +2,10 @@ import mongoose, { Schema } from 'mongoose';
 
 
 const MessageSchema = new Schema({
-  time: String,
+  time: Date,
   message: String,
   sentBy: String,
+  chatID: String,
 });
 
 const ChatSchema = new Schema({
