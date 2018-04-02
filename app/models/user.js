@@ -14,6 +14,7 @@ const UserSchema = new Schema({
     index: { type: '2dsphere', sparse: true },
     default: [0, 0],
   },
+  desiredGoals: [],  // Dropdown/Scroll
   swipes: { count: Number, date: String },
   mates: [],
   potentialMates: [],
@@ -28,13 +29,11 @@ const UserSchema = new Schema({
     age: [], // Range [minAge, maxAge]
     proximity: Number,
   },
-  thirdPartyIds: {},
+  thirdPartyIds: {},  // {{ "third party name": 'ID'}}
   data: {
     totalMilesRun: Number,
     totalElevationClimbed: Number,
-    AveragePace: Number,
-    Koms: [],
-    frequentSegments: [],
+    runsPerWeek: Number, // User Input
     racesDone: [],
     longestRun: String,
   },
