@@ -32,14 +32,33 @@ app.use('/api', apiRouter);
 
 // default index route
 app.get('/', (req, res) => {
-  res.send('welcome to our runningmates site');
+  res.sendFile(__dirname + '/index.html');
   // res.send('hi this is your Running mate');
 });
 
 // START THE SERVER
 // =============================================================================
 const port = process.env.PORT || 9090;
-app.listen(port);
+// START THE SERVER
+//for chat, from tutorial: https://socket.io/get-started/chat/
+// https://stackoverflow.com/questions/17696801/express-js-app-listen-vs-server-listen
+// =============================================================================
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
-console.log(`listening on: ${port}`);
+server.listen(port);
 
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/index.html');
+});
+
+io.on('connection', function(socket){
+  console.log('a user connected');
+
+  socket.on('chat message', function(msg){
+    console.log('message: ' + msg);
+    io.emit('chat message', msg);
+  });
+});
+
+console.log('listening on: ' + port);
