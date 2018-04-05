@@ -25,16 +25,19 @@ const UserSchema = new Schema({
   token: String,
   preferences: {
     gender: String,
-    pace: [], // Range [slowestPace, fastestPace]
+    runLength: [], // Range [minMiles, maxMiles]
     age: [], // Range [minAge, maxAge]
     proximity: Number,
+
   },
   thirdPartyIds: {},  // {{ "third party name": 'ID'}}
   data: {
     totalMilesRun: Number,
     totalElevationClimbed: Number,
     runsPerWeek: Number, // User Input
+    milesPerWeek: Number, // User input and/or MAYBE STRAVA/NIKE/APPLE?!
     racesDone: [],
+    averageRunLength: Number,
     longestRun: String,
   },
 }, {

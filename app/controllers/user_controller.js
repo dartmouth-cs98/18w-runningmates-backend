@@ -228,14 +228,14 @@ function stravaMatchingCheck(activeUser, potentialUser){
 /*
 Helper sorting function to create a sorted list of users with their reason for matching.
 Inputs: Users - list of users nearby; Preferences - User's preferences
-Output: sortedUsers - [{userObject, matchReasonString}] - The sorted list of users based on a specific user's preferences
+Output: sortedUsers - [{userObject, matchReasonString, score}] - The sorted list of users based on a specific user's preferences limited by maxUsers limit
 
 Desired Goals:
-casual runnning partners
-meet new friends
-up for anything
-more than friends
-training buddy
+Casual runnning partners
+Meet new friends
+Up for anything
+More than friends
+Training buddy
 */
 
 function sortUsers(activeUser, users, preferences) {
@@ -283,10 +283,71 @@ function sortUsers(activeUser, users, preferences) {
           }
 
 
-
-          if (activeUser.averagePace === user.desiredGoal) {
-
+          /*
+          ------------------------------------
+          Average Run Length Preferences Check
+          ------------------------------------
+          */
+          /*
+          If potential match's average run length is in user pref range,
+          add: 10 Points
+          */
+          if ((user.data.averageRunLength >= activeUser.preferences.runLength[0]) && (user.data.averageRunLength <= activeUser.preferences.runLength[1])) {
+            userPoints += 10;
           }
+
+          /*
+          Else based on difference to closest part of range, apply state-of-art formulas for determining accurate amount of points
+          add: 10 Points
+          */
+
+          else {
+            let lengthDifference;
+            if ((user.data.averageRunLength < activeUser.preferences.runLength[0])) {
+              lengthDifference = activeUser.preferences.runLength[0] - user.data.averageRunLength
+              userPoints += (10 - (3 * user.data.averageRunLength));
+            }
+
+            else {
+              lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength
+              userPoints += (10 + (1.5 * user.data.averageRunLength));
+
+            }
+          }
+          /*
+          ------------------------------------
+          Personal Run Length Check
+          ------------------------------------
+          */
+          if (user.data.averageRunLength === activeUser.data.averageRunLength){
+            userPoints += 10;
+          }
+          else if  (user.data.averageRunLength < activeUser.data.averageRunLength){
+            let runningLengthDifference = activeUser.data.averageRunLength - user.data.averageRunLength
+            userPoints += (10 + (2 * runningLengthDifference));
+          }
+          else {
+            let runningLengthDifference = user.data.averageRunLength - activeUser.data.averageRunLength
+            userPoints += (10 - (2 * runningLengthDifference));
+          }
+
+          /*
+          ------------------------------------
+          Runs Per Week Check
+          ------------------------------------
+          */
+          if (user.data.runsPerWeek === activeUser.data.runsPerWeek){
+            userPoints += 10;
+          }
+          else if  (user.data.runsPerWeek < activeUser.data.runsPerWeek){
+            let runsCountDifference = activeUser.data.runsPerWeek - user.data.runsPerWeek
+            userPoints += (10 + (3 * runsCountDifference));
+          }
+          else {
+            let runsCountDifference = user.data.runsPerWeek - activeUser.data.runsPerWeek
+            userPoints += (10 - (3 * runsCountDifference));
+          }
+
           // Strava Check
           if (strava && user.thirdPartyIds['strava']) {
 
@@ -299,9 +360,7 @@ function sortUsers(activeUser, users, preferences) {
           if (appleHealthKit && user.thirdPartyIds['appleHealthKit']) {
 
           }
-
-          // Conditional for pace here
-          sortedUsers.push({user: user, matchReason: "They're totally rad, brah."});
+          sortedUsers.push({user: user, matchReason: "They're totally rad, brah.", score: userPoints});
 
 
       };
@@ -310,8 +369,12 @@ function sortUsers(activeUser, users, preferences) {
         console.log('FAILED ADDING USERS');
         reject("We couldn't find people in your area to fit your preferences.");
       }
-      console.log(sortedUsers);
-      fulfill(sortedUsers);
+
+      sortedUsers = Object.keys(sortedUsers).sort(function(a,b){return a.score - b.score});
+      let limitedUsers = sortedUsers.slice(0, maxUsers);
+
+      console.log(limitedUsers);
+      fulfill(limitedUsers);
 
 });
 }
@@ -357,7 +420,7 @@ export const getUsers = (req, res) => {
 
       .then((users) =>{
         // DO SOMETHING WITH LIST OF NEARBY USERS
-        // Need to limit #users sent back
+        // Users Limited by MaxUsers
         sortUsers(activeUser, users, preferences)
         .then((sortedUsers) => {
           res.json(sortedUsers);
