@@ -372,7 +372,7 @@ function sortUsers(activeUser, users, preferences) {
 
       sortedUsers = Object.keys(sortedUsers).sort(function(a,b){return a.score - b.score});
       let limitedUsers = sortedUsers.slice(0, maxUsers);
-      
+
       console.log(limitedUsers);
       fulfill(limitedUsers);
 
