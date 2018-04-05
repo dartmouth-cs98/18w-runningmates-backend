@@ -5,6 +5,7 @@ import path from 'path';
 import mongoose from 'mongoose';
 
 import apiRouter from './router';
+import * as chatActions from "./controllers/chat_controller.js";
 
 // initialize
 // DB Setup
@@ -58,6 +59,7 @@ io.on('connection', function(socket){
   socket.on('chat message', function(msg){
     console.log('message: ' + msg);
     io.emit('chat message', msg);
+    chatActions.saveNewMessage(msg);
   });
 });
 
