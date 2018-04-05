@@ -281,12 +281,82 @@ function sortUsers(activeUser, users, preferences) {
               userPoints += 10;
             }
           }
+          // If user has runs per week data, then chec
 
-
-
-          if (activeUser.averagePace === user.desiredGoal) {
-
+          let userAverageRunLength, activeUserAverageRunLength;
+          if (!user.data.averageRunLength) {
+            userAverageRunLength = (user.data.milesPerWeek / user.data.runsPerWeek);
           }
+          if (!activeUser.data.averageRunLength) {
+            activeUserAverageRunLength = (activeUser.data.milesPerWeek / actoveUser.data.runsPerWeek);
+          }
+
+
+          /*
+          ------------------------------------
+          Average Run Length Preferences Check
+          ------------------------------------
+          */
+          /*
+          If potential match's average run length is in user pref range,
+          add: 10 Points
+          */
+          if ((user.data.averageRunLength >= activeUser.preferences.runLength[0]) && (user.data.averageRunLength <= activeUser.preferences.runLength[1])) {
+            userPoints += 10;
+          }
+
+          /*
+          Else based on difference to closest part of range, apply state-of-art formulas for determining accurate amount of points
+          add: 10 Points
+          */
+
+          else {
+            let lengthDifference;
+            if ((user.data.averageRunLength < activeUser.preferences.runLength[0])) {
+              lengthDifference = activeUser.preferences.runLength[0] - user.data.averageRunLength
+              userPoints += (10 - (3 * user.data.averageRunLength));
+            }
+
+            else {
+              lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength
+              userPoints += (10 + (1.5 * user.data.averageRunLength));
+
+            }
+          }
+          /*
+          ------------------------------------
+          Personal Run Length Check
+          ------------------------------------
+          */
+          if (user.data.averageRunLength === activeUser.data.averageRunLength){
+            userPoints += 10;
+          }
+          else if  (user.data.averageRunLength < activeUser.data.averageRunLength){
+            let runningLengthDifference = activeUser.data.averageRunLength - user.data.averageRunLength
+            userPoints += (10 + (2 * runningLengthDifference));
+          }
+          else {
+            let runningLengthDifference = user.data.averageRunLength - activeUser.data.averageRunLength
+            userPoints += (10 - (2 * runningLengthDifference));
+          }
+
+          /*
+          ------------------------------------
+          Runs Per Week Check
+          ------------------------------------
+          */
+          if (user.data.runsPerWeek === activeUser.data.runsPerWeek){
+            userPoints += 10;
+          }
+          else if  (user.data.runsPerWeek < activeUser.data.runsPerWeek){
+            let runsCountDifference = activeUser.data.runsPerWeek - user.data.runsPerWeek
+            userPoints += (10 + (3 * runsCountDifference));
+          }
+          else {
+            let runsCountDifference = user.data.runsPerWeek - activeUser.data.runsPerWeek
+            userPoints += (10 - (3 * runsCountDifference));
+          }
+
           // Strava Check
           if (strava && user.thirdPartyIds['strava']) {
 
