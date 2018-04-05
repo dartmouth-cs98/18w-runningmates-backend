@@ -11,36 +11,36 @@ const maxUsers = 15;
 export const match = (req, res, next) => {
   const targetId = req.body.targetId;
   const userId = req.body.userId;
-  console.log('targetId: ' + targetId);
-  console.log("userId: " + userId);
+  console.log(`targetId: ${targetId}`);
+  console.log(`userId: ${userId}`);
 
-  User.findOne({ _id: targetId})
+  User.findOne({ _id: targetId })
   .then((found) => {
     if (found) {
       console.log(found);
       // if its a match
-      if (found.potentialMates.includes(userId)){
-        res.send({ response: "match"});
+      if (found.potentialMates.includes(userId)) {
+        res.send({ response: 'match' });
         // updated current active user
-        User.findOne({_id: userId})
-        .then((found) => {
-          if (found) {
+        User.findOne({ _id: userId })
+        .then((foundActive) => {
+          if (foundActive) {
             const userMates = found.mates;
             userMates.push(targetId);
-            User.update({_id: userId},
-            {
-              mates: userMates
-            }).then((user) => {
-              console.log("successfully updated mates ");
-              //res.send('updated user');
-            }).catch((error) => {
-              console.log("error updating user");
-              console.log(error);
-              //res.status(500).json({error});
-            });
+            User.update({ _id: userId },
+              {
+                mates: userMates,
+              }).then((user) => {
+                console.log('successfully updated mates ');
+              // res.send('updated user');
+              }).catch((error) => {
+                console.log('error updating user');
+                console.log(error);
+              // res.status(500).json({error});
+              });
           } else {
-            console.log("user does not exist");
-            //res.json("User does not exist");
+            console.log('user does not exist');
+            // res.json("User does not exist");
           }
         });
         // update user they matched with
@@ -48,63 +48,63 @@ export const match = (req, res, next) => {
         const targetPotentialMates = found.potentialMates;
         const index = targetPotentialMates.indexOf(userId);
         if (index !== -1) {
-            targetPotentialMates.splice(index, 1);
+          targetPotentialMates.splice(index, 1);
         }
         // mates
         const targetMates = found.mates;
         targetMates.push(userId);
         // update
-        User.findOne({ _id: targetId})
-        .then((found) => {
-          if (found) {
-            User.update({ _id: targetId},
-            {
-              mates: targetMates,
-              potentialMates: targetPotentialMates
-            }).then((user) => {
-              console.log("successfully updated user");
+        User.findOne({ _id: targetId })
+        .then((foundUpdate) => {
+          if (foundUpdate) {
+            User.update({ _id: targetId },
+              {
+                mates: targetMates,
+                potentialMates: targetPotentialMates,
+              }).then((user) => {
+                console.log('successfully updated user');
               // res.send('updated user');
-            }).catch((error) => {
-              console.log("error updating user");
-              console.log(error);
+              }).catch((error) => {
+                console.log('error updating user');
+                console.log(error);
               // res.status(500).json({error});
-            });
+              });
           } else {
-            console.log("user does not exist");
-            /// res.json("User does not exist");
+            console.log('user does not exist');
+            // / res.json("User does not exist");
           }
         });
       } else {
-        res.send({ response: "no"});
+        res.send({ response: 'no' });
 
         // update active user
 
-        User.findOne({_id: userId})
-        .then((found) => {
-          if (found) {
+        User.findOne({ _id: userId })
+        .then((foundPotential) => {
+          if (foundPotential) {
             const userPotentialMates = found.potentialMates;
             userPotentialMates.push(targetId);
-            User.update({_id: userId},
-            {
-              potentialMates: userPotentialMates
-            }).then((user) => {
-              console.log("successfully updated user");
-              console.log(user);
-              //res.send('updated user');
-            }).catch((error) => {
-              console.log("error updating user");
-              console.log(error);
-              //res.status(500).json({error});
-            });
+            User.update({ _id: userId },
+              {
+                potentialMates: userPotentialMates,
+              }).then((user) => {
+                console.log('successfully updated user');
+                console.log(user);
+              // res.send('updated user');
+              }).catch((error) => {
+                console.log('error updating user');
+                console.log(error);
+              // res.status(500).json({error});
+              });
           } else {
-            console.log("user does not exist");
+            console.log('user does not exist');
             // res.json("User does not exist");
           }
         });
       }
     } else {
-      console.log("user does not exist");
-      res.json("User does not exist");
+      console.log('user does not exist');
+      res.json('User does not exist');
     }
   });
 };
@@ -221,23 +221,45 @@ export const updateUser = (req, res, next) => {
 }
 
 
+
+function stravaMatchingCheck(activeUser, potentialUser){
+
+}
 /*
 Helper sorting function to create a sorted list of users with their reason for matching.
 Inputs: Users - list of users nearby; Preferences - User's preferences
-Output: sortedUsers - [{userObject, matchReasonString}] - The sorted list of users based on a specific user's preferenceså
+Output: sortedUsers - [{userObject, matchReasonString}] - The sorted list of users based on a specific user's preferences
+
+Desired Goals:
+casual runnning partners
+meet new friends
+up for anything
+more than friends
+training buddy
 */
-function sortUsers(userEmail, users, preferences) {
+
+function sortUsers(activeUser, users, preferences) {
   let sortedUsers =[];
-  console.log(users);
+  let strava, nike, appleHealthKit;
+  if (activeUser.thirdPartyIds['strava']) {
+    strava === true;
+  }
+  if (activeUser.thirdPartyIds['nike']) {
+    nike === true;
+  }
+  if (activeUser.thirdPartyIds['appleHealthKit']) {
+    appleHealthKit === true;
+  }
   return new Promise((fulfill, reject) => {
       for (let key in users) {
           let user = users[key]
+          let userPoints = 0;
           console.log(user);
           if (sortedUsers.length >= maxUsers) {
             break;
           }
 
-          if (userEmail == user.email) {
+          if (activeUser.email == user.email) {
             continue;
           }
           // Sort by gender
@@ -252,8 +274,36 @@ function sortUsers(userEmail, users, preferences) {
               continue;
             }
 
+          // Check which if any desired goals are the same
+          for (let index in activeUser.desiredGoal) {
+            let goal = activeUser.desiredGoal[index];
+            if (activeUser.desiredGoal.includes(goal)){
+              userPoints += 10;
+            }
+          }
+
+
+
+          if (activeUser.averagePace === user.desiredGoal) {
+
+          }
+          // Strava Check
+          if (strava && user.thirdPartyIds['strava']) {
+
+          }
+          // Nike check
+          if (nike && user.thirdPartyIds['nike']) {
+
+          }
+          // Apple Health Kit Check
+          if (appleHealthKit && user.thirdPartyIds['appleHealthKit']) {
+
+          }
+
           // Conditional for pace here
           sortedUsers.push({user: user, matchReason: "They're totally rad, brah."});
+
+
       };
 
       if (sortedUsers.length < 1){
@@ -308,7 +358,7 @@ export const getUsers = (req, res) => {
       .then((users) =>{
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Need to limit #users sent back
-        sortUsers(email, users, preferences)
+        sortUsers(activeUser, users, preferences)
         .then((sortedUsers) => {
           res.json(sortedUsers);
         })
