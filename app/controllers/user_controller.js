@@ -281,15 +281,6 @@ function sortUsers(activeUser, users, preferences) {
               userPoints += 10;
             }
           }
-          // If user has runs per week data, then chec
-
-          let userAverageRunLength, activeUserAverageRunLength;
-          if (!user.data.averageRunLength) {
-            userAverageRunLength = (user.data.milesPerWeek / user.data.runsPerWeek);
-          }
-          if (!activeUser.data.averageRunLength) {
-            activeUserAverageRunLength = (activeUser.data.milesPerWeek / actoveUser.data.runsPerWeek);
-          }
 
 
           /*
