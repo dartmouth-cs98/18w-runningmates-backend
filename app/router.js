@@ -34,8 +34,10 @@ router.route('/users')
   .get(Users.getUsers); // Get Users
 router.route('/match')
   .post(Users.match);
-router.get('/chatHistory', Chat.getChatHistory)
+router.route('/chatHistory')
   .get(Chat.getChatHistory);
+router.route('/chats')
+  .get(Chat.getChatsList);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
