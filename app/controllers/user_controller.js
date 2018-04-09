@@ -231,16 +231,16 @@ Inputs: Users - list of users nearby; Preferences - User's preferences
 Output: sortedUsers - [{userObject, matchReasonString, score}] - The sorted list of users based on a specific user's preferences limited by maxUsers limit
 
 Desired Goals:
-Casual runnning partners
-Meet new friends
-Up for anything
-More than friends
-Training buddy
+casual runnning partners
+meet new friends
+up for anything
+more than friends
+training buddy
 */
 
 function sortUsers(activeUser, users, preferences) {
   let sortedUsers =[];
-  let strava, nike, appleHealthKit;
+  let strava, nike, appleHealthKit, recommendationText;
   if (activeUser.thirdPartyIds['strava']) {
     strava === true;
   }
@@ -279,6 +279,10 @@ function sortUsers(activeUser, users, preferences) {
             let goal = activeUser.desiredGoal[index];
             if (activeUser.desiredGoal.includes(goal)){
               userPoints += 10;
+
+              if (!recommendationText) {
+                recommendationText = `You both want to ${goal}`;
+              }
             }
           }
 
@@ -294,6 +298,10 @@ function sortUsers(activeUser, users, preferences) {
           */
           if ((user.data.averageRunLength >= activeUser.preferences.runLength[0]) && (user.data.averageRunLength <= activeUser.preferences.runLength[1])) {
             userPoints += 10;
+
+            if (!recommendationText) {
+              recommendationText = `${user.firstName}'s average run length is in your preferred range'`;
+            }
           }
 
           /*
@@ -306,11 +314,17 @@ function sortUsers(activeUser, users, preferences) {
             if ((user.data.averageRunLength < activeUser.preferences.runLength[0])) {
               lengthDifference = activeUser.preferences.runLength[0] - user.data.averageRunLength
               userPoints += (10 - (3 * user.data.averageRunLength));
+              if (!recommendationText) {
+                recommendationText = `${user.firstName}'s average run length is slightly below your preferred average run length range`;
+              }
             }
 
             else {
               lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength
               userPoints += (10 + (1.5 * user.data.averageRunLength));
+              if (!recommendationText) {
+                recommendationText = `${user.firstName}'s average run length is slightly above your preferred average run length range`;
+              }
 
             }
           }
@@ -321,14 +335,23 @@ function sortUsers(activeUser, users, preferences) {
           */
           if (user.data.averageRunLength === activeUser.data.averageRunLength){
             userPoints += 10;
+            if (!recommendationText) {
+              recommendationText = `${user.firstName}'s average run length is the same as your average run length`;
+            }
           }
           else if  (user.data.averageRunLength < activeUser.data.averageRunLength){
             let runningLengthDifference = activeUser.data.averageRunLength - user.data.averageRunLength
             userPoints += (10 + (2 * runningLengthDifference));
+            if (!recommendationText) {
+              recommendationText = `${user.firstName}'s average run length is slightly below your average run length`;
+            }
           }
           else {
             let runningLengthDifference = user.data.averageRunLength - activeUser.data.averageRunLength
             userPoints += (10 - (2 * runningLengthDifference));
+            if (!recommendationText) {
+              recommendationText = `${user.firstName}'s average run length is slightly above your average run length`;
+            }
           }
 
           /*
@@ -338,14 +361,23 @@ function sortUsers(activeUser, users, preferences) {
           */
           if (user.data.runsPerWeek === activeUser.data.runsPerWeek){
             userPoints += 10;
+            if (!recommendationText) {
+              recommendationText = `${user.firstName}'s runs per week is equal to your runs per week`;
+            }
           }
           else if  (user.data.runsPerWeek < activeUser.data.runsPerWeek){
             let runsCountDifference = activeUser.data.runsPerWeek - user.data.runsPerWeek
             userPoints += (10 + (3 * runsCountDifference));
+            if (!recommendationText) {
+              recommendationText = `${user.firstName}'s runs per week is slightly below your runs per week`;
+            }
           }
           else {
             let runsCountDifference = user.data.runsPerWeek - activeUser.data.runsPerWeek
             userPoints += (10 - (3 * runsCountDifference));
+            if (!recommendationText) {
+              recommendationText = `${user.firstName}'s runs per week is slightly above your runs per week`;
+            }
           }
 
           // Strava Check
@@ -360,7 +392,7 @@ function sortUsers(activeUser, users, preferences) {
           if (appleHealthKit && user.thirdPartyIds['appleHealthKit']) {
 
           }
-          sortedUsers.push({user: user, matchReason: "They're totally rad, brah.", score: userPoints});
+          sortedUsers.push({user: user, matchReason: recommendationText, score: userPoints});
 
 
       };
