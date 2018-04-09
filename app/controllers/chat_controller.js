@@ -74,6 +74,31 @@ export const saveNewMessage = (msg) => {
 }
 
 
+export const getChatsList = (req, res) => {
+
+  console.log("body: ");
+  console.log(req.body);
+  console.log("query: ");
+  console.log(req.query);
+  let userEmail = req.query.user;
+
+  if (userEmail) {
+    Chat.find({members: userEmail}).then((chats) => {
+      console.log("found chats");
+      console.log(chats);
+      res.send(chats);
+    }).catch((err) => {
+      console.log("error fetching chats");
+      console.log(err);
+    });
+  } else {
+    console.log("invalid user email");
+    res.send("invalid user email");
+  }
+}
+
+
+
 export const getChatHistory = (req, res, next) => {
 
   let chatID = req.body.chatID;

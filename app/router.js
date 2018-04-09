@@ -25,7 +25,8 @@ router.post('/users/:email', Users.updateUser); // Update User
 router.get('/users', Users.getUsers); // Get Users
 router.post('/match', Users.match);
 router.post('/getuser', Users.getUser);
-router.get('/chatHistory', Chat.getChatHistory)
+router.get('/chatHistory', Chat.getChatHistory);
+router.get('/chats', Chat.getChatsList)
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
