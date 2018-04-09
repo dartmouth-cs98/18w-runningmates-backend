@@ -24,6 +24,12 @@ var _router = require('./router');
 
 var _router2 = _interopRequireDefault(_router);
 
+var _chat_controller = require('./controllers/chat_controller');
+
+var chatActions = _interopRequireWildcard(_chat_controller);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // initialize
@@ -51,13 +57,34 @@ app.use('/api', _router2.default);
 
 // default index route
 app.get('/', function (req, res) {
-  res.send('welcome to our runningmates site');
+  res.sendFile(__dirname + '/index.html');
   // res.send('hi this is your Running mate');
 });
 
 // START THE SERVER
 // =============================================================================
 var port = process.env.PORT || 9090;
-app.listen(port);
+// START THE SERVER
+// for chat, from tutorial: https://socket.io/get-started/chat/
+// https://stackoverflow.com/questions/17696801/express-js-app-listen-vs-server-listen
+// =============================================================================
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
+
+server.listen(port);
+
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/index.html');
+});
+
+io.on('connection', function (socket) {
+  console.log('a user connected');
+
+  socket.on('chat message', function (msg) {
+    console.log('message: ' + msg);
+    io.emit('chat message', msg);
+    chatActions.saveNewMessage(msg);
+  });
+});
 
 console.log('listening on: ' + port);

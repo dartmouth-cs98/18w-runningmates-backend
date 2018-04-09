@@ -14,6 +14,10 @@ var _user_strava_controller = require('./controllers/user_strava_controller');
 
 var UserStrava = _interopRequireWildcard(_user_strava_controller);
 
+var _chat_controller = require('./controllers/chat_controller');
+
+var Chat = _interopRequireWildcard(_chat_controller);
+
 var _passport = require('./services/passport');
 
 var _s = require('./services/s3');
@@ -31,17 +35,22 @@ router.get('/', function (req, res) {
 });
 
 // routes will go here
-router.post('/signin', _passport.requireSignin, Users.signin);
-router.post('/signup', Users.signup);
+router.route('/signin').post(_passport.requireSignin, Users.signin);
+
+router.route('/signup').post(Users.signup);
 
 // router.get('/stravaAuthenticate', UserStrava.getStravaRedirect);
 // router.get('/stravaSignUp', UserStrava.getStravaToken);
-router.post('/stravaSignUp', UserStrava.getData);
+router.route('/stravaSignUp').post(UserStrava.getData);
 // router.post('/users/update', Users.updateUser);
-router.get('/sign-s3', _s2.default);
-router.get('/users/:email'); // Get User
-router.post('/users/:email', Users.updateUser); // Update User
-router.get('/users', Users.getUsers); // Get Users
+router.route('/sign-s3').get(_s2.default);
+
+router.route('/users/:email').get(Users.getUser) // Get User
+.post(Users.updateUser); // Update User
+
+router.route('/users').get(Users.getUsers); // Get Users
+router.route('/match').post(Users.match);
+router.get('/chatHistory', Chat.getChatHistory).get(Chat.getChatHistory);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
