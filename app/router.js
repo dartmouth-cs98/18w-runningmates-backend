@@ -20,12 +20,14 @@ router.post('/signup', Users.signup);
 router.post('/stravaSignUp', UserStrava.getData);
 // router.post('/users/update', Users.updateUser);
 router.get('/sign-s3', signS3);
-router.get('/users/:email'); // Get User
-router.post('/users/:email', Users.updateUser); // Update User
+
+router.route('/users/:email')
+  .get('/users/:email', Users.getUser) // Get User
+  .post('/users/:email', Users.updateUser); // Update User
+
 router.get('/users', Users.getUsers); // Get Users
 router.post('/match', Users.match);
-router.post('/getuser', Users.getUser);
-router.get('/chatHistory', Chat.getChatHistory)
+router.get('/chatHistory', Chat.getChatHistory);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
