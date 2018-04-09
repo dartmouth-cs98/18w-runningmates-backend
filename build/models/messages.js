@@ -10,16 +10,13 @@ var _mongoose2 = _interopRequireDefault(_mongoose);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var ChatSchema = new _mongoose.Schema({
-  members: [],
-  messages: [{ type: _mongoose.Schema.ObjectId, ref: 'Message' }]
-}, {
-  toJSON: {
-    virtuals: true
-  }
+var MessageSchema = new _mongoose.Schema({
+  time: Date,
+  message: String,
+  sentBy: String,
+  chatID: String
 });
 
-// create model class
-var ChatModel = _mongoose2.default.model('Chat', ChatSchema);
+var MessageModel = _mongoose2.default.model('Message', MessageSchema);
 
-exports.default = ChatModel;
+exports.default = MessageModel;

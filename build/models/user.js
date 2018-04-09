@@ -27,6 +27,7 @@ var UserSchema = new _mongoose.Schema({
     index: { type: '2dsphere', sparse: true },
     default: [0, 0]
   },
+  desiredGoals: [], // Dropdown/Scroll
   swipes: { count: Number, date: String },
   mates: [],
   potentialMates: [],
@@ -37,18 +38,19 @@ var UserSchema = new _mongoose.Schema({
   token: String,
   preferences: {
     gender: String,
-    pace: [], // Range [slowestPace, fastestPace]
+    runLength: [], // Range [minMiles, maxMiles]
     age: [], // Range [minAge, maxAge]
     proximity: Number
+
   },
-  thirdPartyIds: {},
+  thirdPartyIds: {}, // {{ "third party name": 'ID'}}
   data: {
     totalMilesRun: Number,
     totalElevationClimbed: Number,
-    AveragePace: Number,
-    Koms: [],
-    frequentSegments: [],
+    runsPerWeek: Number, // User Input
+    milesPerWeek: Number, // User input and/or MAYBE STRAVA/NIKE/APPLE?!
     racesDone: [],
+    averageRunLength: Number,
     longestRun: String
   }
 }, {

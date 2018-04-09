@@ -12,21 +12,32 @@ router.get('/', (req, res) => {
 });
 
 // routes will go here
-router.post('/signin', requireSignin, Users.signin);
-router.post('/signup', Users.signup);
+router.route('/signin')
+  .post(requireSignin, Users.signin);
+
+router.route('/signup')
+  .post(Users.signup);
 
 // router.get('/stravaAuthenticate', UserStrava.getStravaRedirect);
 // router.get('/stravaSignUp', UserStrava.getStravaToken);
-router.post('/stravaSignUp', UserStrava.getData);
+router.route('/stravaSignUp')
+  .post(UserStrava.getData);
 // router.post('/users/update', Users.updateUser);
-router.get('/sign-s3', signS3);
-router.get('/users/:email'); // Get User
-router.post('/users/:email', Users.updateUser); // Update User
-router.get('/users', Users.getUsers); // Get Users
-router.post('/match', Users.match);
-router.post('/getuser', Users.getUser);
-router.get('/chatHistory', Chat.getChatHistory);
-router.get('/chats', Chat.getChatsList)
+router.route('/sign-s3')
+  .get(signS3);
+
+router.route('/users/:email')
+  .get(Users.getUser) // Get User
+  .post(Users.updateUser); // Update User
+
+router.route('/users')
+  .get(Users.getUsers); // Get Users
+router.route('/match')
+  .post(Users.match);
+router.route('/chatHistory')
+  .get(Chat.getChatHistory);
+router.route('/chats')
+  .get(Chat.getChatsList);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
