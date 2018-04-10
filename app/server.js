@@ -49,9 +49,9 @@ const io = require('socket.io')(server);
 
 server.listen(port);
 
-// app.get('/', (req, res) => {
-//   res.sendfile(`${__dirname}/index.html`);
-// });
+app.get('/', (req, res) => {
+  res.json({ message: 'welcome to running mates!' });
+});
 
 io.on('connection', (socket) => {
   console.log('a user connected');
