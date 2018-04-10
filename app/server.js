@@ -31,11 +31,11 @@ app.use(bodyParser.json());
 app.use('/api', apiRouter);
 
 
-// default index route
-app.get('/', (req, res) => {
-  res.sendFile(`${__dirname}/index.html`);
-  // res.send('hi this is your Running mate');
-});
+// // default index route
+// app.get('/', (req, res) => {
+//   res.sendFile(`${__dirname}/index.html`);
+//   // res.send('hi this is your Running mate');
+// });
 
 // START THE SERVER
 // =============================================================================
@@ -49,9 +49,9 @@ const io = require('socket.io')(server);
 
 server.listen(port);
 
-app.get('/', (req, res) => {
-  res.sendfile(`${__dirname}/index.html`);
-});
+// app.get('/', (req, res) => {
+//   res.sendfile(`${__dirname}/index.html`);
+// });
 
 io.on('connection', (socket) => {
   console.log('a user connected');
