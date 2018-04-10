@@ -31,11 +31,11 @@ app.use(bodyParser.json());
 app.use('/api', apiRouter);
 
 
-// default index route
-app.get('/', (req, res) => {
-  res.sendFile(`${__dirname}/index.html`);
-  // res.send('hi this is your Running mate');
-});
+// // default index route
+// app.get('/', (req, res) => {
+//   res.sendFile(`${__dirname}/index.html`);
+//   // res.send('hi this is your Running mate');
+// });
 
 // START THE SERVER
 // =============================================================================
