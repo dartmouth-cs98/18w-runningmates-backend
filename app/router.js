@@ -30,6 +30,10 @@ router.route('/users/:email')
   .get(Users.getUser) // Get User
   .post(Users.updateUser); // Update User
 
+router.route('/user/:email')
+  .get(Users.getProfile)
+  .post(Users.profileUpdate);
+
 router.route('/users')
   .get(Users.getUsers); // Get Users
 router.route('/match')
