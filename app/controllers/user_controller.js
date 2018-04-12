@@ -220,6 +220,56 @@ export const updateUser = (req, res, next) => {
   });
 }
 
+export const profileUpdate = (req, res, next) => {
+  const email = req.body.email;
+  const firstName = req.body.firstName;
+  //const imageURL = req.body.imageURL;
+  const bio = req.body.bio;
+  //const gender = req.body.gender;
+  //const age = req.body.age;
+  const location = req.body.location;
+  //const preferences = req.body.preferences;
+  const milesPerWeek = req.body.milesPerWeek;
+  const totalElevation = req.body.totalElevation;
+  const totalMiles = req.body.totalMiles; 
+  const longestRun = req.body.longestRun;
+  const racesDone = req.body.racesDone; 
+  const runsPerWeek = req.body.runsPerWeek; 
+  const kom = req.body.kom; 
+  const frequentSegments = req.body.frequentSegments;
+
+
+  User.findOne({email})
+  .then((found) => {
+    if (found) {
+      User.update({ email },
+      {
+        firstName: firstName,
+        bio: bio,
+        location: location,
+        data: {
+          milesPerWeek: milesPerWeek, 
+          totalElevation: totalElevation,
+          totalMiles: totalMiles, 
+          longestRun: longestRun,
+          racesDone: racesDone, 
+          runsPerWeek: runsPerWeek
+        }
+      }).then((user) => {
+        console.log("successfully updated user");
+        res.send('updated user');
+      }).catch((error) => {
+        console.log("error updating user");
+        console.log(error);
+        res.status(500).json({error});
+      });
+    } else {
+      console.log("user does not exist");
+      res.json("User does not exist");
+    }
+  });
+}
+
 
 
 function stravaMatchingCheck(activeUser, potentialUser){

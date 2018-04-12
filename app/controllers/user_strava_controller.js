@@ -74,6 +74,7 @@ function getStravaAthlete(token, athlete, user) {
         user.age = age;
         user.imageURL = imgUrl;
         user.location = coords;
+        user.thirdPartyIds["strava"] =  payload.id; 
         //console.log("XXXXXXXXX");
         //console.log(user);
         //console.log(athlete);
@@ -136,7 +137,7 @@ function getStravaStats(token, totalActivityCount, objects) {
         // user data update
         objects[0].data.totalMilesRun = payload.all_run_totals.distance * 0.000621371;
         objects[0].data.totalElevationClimbed = payload.all_run_totals.elevation_gain;
-        objects[0].data.AveragePace = (payload.all_run_totals.moving_time/60)/(payload.all_run_totals.distance* 0.000621371);
+        // runs per week and average run length 
 
       } else {
         console.log('we getting errors mate');
