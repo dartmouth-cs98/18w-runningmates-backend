@@ -222,6 +222,41 @@ export const updateUser = (req, res, next) => {
 
 
 
+export const updatePrefs = (req, res, next) => {
+  const email = req.body.email;
+  const gender = req.body.gender;
+
+
+  User.findOne({email})
+  .then((found) => {
+    if (found) {
+      let preferences = found.preferences;
+      console.log("found user with following preferences: ");
+      console.log(preferences);
+      preferences.gender = gender;
+      User.update({ email },
+      {
+        preferences: preferences,
+      }).then((user) => {
+        console.log("successfully updated user preferences");
+        res.send('updated user preferences');
+      }).catch((error) => {
+        console.log("error updating user preferences");
+        console.log(error);
+        res.status(500).json({error});
+      });
+    } else {
+      console.log("user does not exist");
+      res.json("User does not exist");
+    }
+  });
+}
+
+
+
+
+
+
 function stravaMatchingCheck(activeUser, potentialUser){
 
 }
@@ -418,12 +453,12 @@ function sortUsers(activeUser, users, preferences) {
 
 export const getUser = (req, res) => {
   const email = req.body.email;
-  console.log("email: " + email);
+  // console.log("email: " + email);
   User.findOne({'email': email})
   .then((user) => {
-    console.log("FOUND USER:")
-    console.log(user)
-    console.log("---------")
+    // console.log("FOUND USER:")
+    // console.log(user)
+    // console.log("---------")
     res.json(user);
   })
   .catch((error) => {
@@ -441,7 +476,7 @@ export const getUsers = (req, res) => {
     let location = req.query.location;
     User.findOne({'email': email})
     .then((user) => {
-      console.log('USER IN GETUSERS: ', user);
+      // console.log('USER IN GETUSERS: ', user);
       let preferences = user.preferences;
 
       // IN METERS
