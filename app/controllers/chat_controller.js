@@ -1,5 +1,6 @@
 import Chat from '../models/chats';
 import Message from '../models/messages';
+import User from '../models/user';
 
 
 function compareByDate(msg1, msg2) {
@@ -11,11 +12,9 @@ function compareByDate(msg1, msg2) {
 export const saveNewMessage = (msg) => {
   const time = Date.Now;
   const message = msg.message;
-  const sentBy = msg.user;
+  const sentBy = msg.sentBy;
   const chatID = msg.chatID;
   const recipient = msg.recipient;
-
-  console.log(`message is: ${message}`);
 
   const newMessage = new Message();
   newMessage.time = time;
@@ -24,20 +23,15 @@ export const saveNewMessage = (msg) => {
   newMessage.chatID = chatID;
 
   newMessage.save().then((result) => {
-    console.log('message saved successfully');
-
     // create a new chat
     if (!chatID) {
-      console.log('creating new chat');
       const newChat = Chat();
       newChat.members = [];
       newChat.members.push(sentBy);
       newChat.members.push(recipient);
       newChat.messages = [];
       newChat.messages.push(result.id);
-
-      console.log(`members: ${newChat.members}`);
-      console.log(`messages: ${newChat.messages}`);
+      newChat.mostRecentMessage = result.id;
 
       newChat.save().then(() => {
         console.log('saved new chat successfully');
@@ -47,11 +41,11 @@ export const saveNewMessage = (msg) => {
     } else {
       Chat.findOne({ _id: chatID }).then((chat) => {
         if (result) {
-          console.log(`found chat ${chatID}`);
           const currentMessages = chat.messages;
-          currentMessages.push(result);
+          currentMessages.push(result.id);
           Chat.update({ _id: chatID }, {
             messages: currentMessages,
+            mostRecentMessage: result.id
           }).then(() => {
             console.log('updated chat successfully');
           }).catch((err) => {
@@ -74,17 +68,48 @@ export const saveNewMessage = (msg) => {
 
 export const getChatsList = (req, res) => {
 
-  console.log("body: ");
-  console.log(req.body);
-  console.log("query: ");
-  console.log(req.query);
   let userEmail = req.query.user;
 
   if (userEmail) {
     Chat.find({members: userEmail}).then((chats) => {
-      console.log("found chats");
-      console.log(chats);
-      res.send(chats);
+      // let chatsResponse = Object.assign({}, chats);
+
+      let outerPromiseArray = [];
+
+      let innerPromiseArray = [];
+      for (let i = 0; i < chats.length; i++) {
+        let currentChat = JSON.parse(JSON.stringify(chats[i]));
+        let innerPromiseArray = [];
+
+        const outerPromise = new Promise((resl, rej) => {
+
+          for (let j = 0; j < currentChat.members.length; j++) {
+            if (currentChat.members[j] != userEmail) {
+
+              const innerPromise = new Promise((resolve, reject) => {
+                let name = "";
+
+                User.findOne({email: currentChat.members[j]}).then((user) => {
+                  name += user.firstName + " " + user.lastName;
+                  resolve(name);
+                }).catch((err) => {
+                  console.log("error finding user " + currentChat.members[j]);
+                  reject(err);
+                });
+              });
+              innerPromiseArray.push(innerPromise);
+            }
+          }
+          Promise.all(innerPromiseArray).then((recipients) => {
+            currentChat.recipients = recipients;
+            resl(currentChat);
+          });
+        });
+      outerPromiseArray.push(outerPromise);
+    }
+      Promise.all(outerPromiseArray).then((chatsResponse) => {
+        res.send(chatsResponse);
+      });
     }).catch((err) => {
       console.log("error fetching chats");
       console.log(err);
