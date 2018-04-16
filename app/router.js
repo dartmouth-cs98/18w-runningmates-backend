@@ -36,7 +36,7 @@ router.route('/user/:email')
 
 router.route('/users')
   .get(Users.getUsers); // Get Users
-router.route('/users/prefs')
+router.route('/prefs')
   .post(Users.updatePrefs);
 router.route('/match')
   .post(Users.match);
