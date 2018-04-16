@@ -231,11 +231,11 @@ export const profileUpdate = (req, res, next) => {
   //const preferences = req.body.preferences;
   const milesPerWeek = req.body.milesPerWeek;
   const totalElevation = req.body.totalElevation;
-  const totalMiles = req.body.totalMiles; 
+  const totalMiles = req.body.totalMiles;
   const longestRun = req.body.longestRun;
-  const racesDone = req.body.racesDone; 
-  const runsPerWeek = req.body.runsPerWeek; 
-  const kom = req.body.kom; 
+  const racesDone = req.body.racesDone;
+  const runsPerWeek = req.body.runsPerWeek;
+  const kom = req.body.kom;
   const frequentSegments = req.body.frequentSegments;
 
 
@@ -248,11 +248,11 @@ export const profileUpdate = (req, res, next) => {
         bio: bio,
         location: location,
         data: {
-          milesPerWeek: milesPerWeek, 
+          milesPerWeek: milesPerWeek,
           totalElevation: totalElevation,
-          totalMiles: totalMiles, 
+          totalMiles: totalMiles,
           longestRun: longestRun,
-          racesDone: racesDone, 
+          racesDone: racesDone,
           runsPerWeek: runsPerWeek
         }
       }).then((user) => {
@@ -275,7 +275,9 @@ export const profileUpdate = (req, res, next) => {
 export const updatePrefs = (req, res, next) => {
   const email = req.body.email;
   const gender = req.body.gender;
-
+  const runLength = req.body.runLength;
+  const age = req.body.age;
+  const proximity = req.body.proximity;
 
   User.findOne({email})
   .then((found) => {
@@ -284,6 +286,9 @@ export const updatePrefs = (req, res, next) => {
       console.log("found user with following preferences: ");
       console.log(preferences);
       preferences.gender = gender;
+      preferences.runLength = runLength;
+      preferences.age = age;
+      preferences.proximity = proximity;
       User.update({ email },
       {
         preferences: preferences,
@@ -564,6 +569,10 @@ export const getUsers = (req, res) => {
     res.json("user does not exist");
   }
 };
+
+export const getProfile = (req, res) => {
+
+}
 
 
 /*eslint-enable*/
