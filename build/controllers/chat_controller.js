@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getChatHistory = exports.saveNewMessage = undefined;
+exports.getChatHistory = exports.getChatsList = exports.saveNewMessage = undefined;
 
 var _chats = require('../models/chats');
 
@@ -12,6 +12,10 @@ var _chats2 = _interopRequireDefault(_chats);
 var _messages = require('../models/messages');
 
 var _messages2 = _interopRequireDefault(_messages);
+
+var _user = require('../models/user');
+
+var _user2 = _interopRequireDefault(_user);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -28,11 +32,9 @@ function compareByDate(msg1, msg2) {
 var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg) {
   var time = Date.Now;
   var message = msg.message;
-  var sentBy = msg.user;
+  var sentBy = msg.sentBy;
   var chatID = msg.chatID;
   var recipient = msg.recipient;
-
-  console.log('message is: ' + message);
 
   var newMessage = new _messages2.default();
   newMessage.time = time;
@@ -41,20 +43,15 @@ var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg) {
   newMessage.chatID = chatID;
 
   newMessage.save().then(function (result) {
-    console.log('message saved successfully');
-
     // create a new chat
     if (!chatID) {
-      console.log('creating new chat');
       var newChat = (0, _chats2.default)();
       newChat.members = [];
       newChat.members.push(sentBy);
       newChat.members.push(recipient);
       newChat.messages = [];
       newChat.messages.push(result.id);
-
-      console.log('members: ' + newChat.members);
-      console.log('messages: ' + newChat.messages);
+      newChat.mostRecentMessage = result.id;
 
       newChat.save().then(function () {
         console.log('saved new chat successfully');
@@ -64,11 +61,11 @@ var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg) {
     } else {
       _chats2.default.findOne({ _id: chatID }).then(function (chat) {
         if (result) {
-          console.log('found chat ' + chatID);
           var currentMessages = chat.messages;
-          currentMessages.push(result);
+          currentMessages.push(result.id);
           _chats2.default.update({ _id: chatID }, {
-            messages: currentMessages
+            messages: currentMessages,
+            mostRecentMessage: result.id
           }).then(function () {
             console.log('updated chat successfully');
           }).catch(function (err) {
@@ -88,6 +85,68 @@ var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg) {
   });
 };
 
+var getChatsList = exports.getChatsList = function getChatsList(req, res) {
+
+  var userEmail = req.query.user;
+
+  if (userEmail) {
+    _chats2.default.find({ members: userEmail }).then(function (chats) {
+      // let chatsResponse = Object.assign({}, chats);
+
+      var outerPromiseArray = [];
+
+      var innerPromiseArray = [];
+
+      var _loop = function _loop(i) {
+        var currentChat = JSON.parse(JSON.stringify(chats[i]));
+        var innerPromiseArray = [];
+
+        var outerPromise = new Promise(function (resl, rej) {
+          var _loop2 = function _loop2(j) {
+            if (currentChat.members[j] != userEmail) {
+
+              var innerPromise = new Promise(function (resolve, reject) {
+                var name = "";
+
+                _user2.default.findOne({ email: currentChat.members[j] }).then(function (user) {
+                  name += user.firstName + " " + user.lastName;
+                  resolve(name);
+                }).catch(function (err) {
+                  console.log("error finding user " + currentChat.members[j]);
+                  reject(err);
+                });
+              });
+              innerPromiseArray.push(innerPromise);
+            }
+          };
+
+          for (var j = 0; j < currentChat.members.length; j++) {
+            _loop2(j);
+          }
+          Promise.all(innerPromiseArray).then(function (recipients) {
+            currentChat.recipients = recipients;
+            resl(currentChat);
+          });
+        });
+        outerPromiseArray.push(outerPromise);
+      };
+
+      for (var i = 0; i < chats.length; i++) {
+        _loop(i);
+      }
+      Promise.all(outerPromiseArray).then(function (chatsResponse) {
+        res.send(chatsResponse);
+      });
+    }).catch(function (err) {
+      console.log("error fetching chats");
+      console.log(err);
+    });
+  } else {
+    console.log("invalid user email");
+    res.send("invalid user email");
+  }
+};
+
 var getChatHistory = exports.getChatHistory = function getChatHistory(req, res, next) {
   var chatID = req.body.chatID;
   var pageNumber = req.body.pageNumber;
@@ -100,7 +159,7 @@ var getChatHistory = exports.getChatHistory = function getChatHistory(req, res, 
 
         // add all messages in the chat to the messageObjects array
 
-        var _loop = function _loop(i) {
+        var _loop3 = function _loop3(i) {
           var promise = new Promise(function (resolve, reject) {
             _messages2.default.findOne({ _id: messageIDs[i] }).then(function (msg) {
               resolve(msg);
@@ -114,7 +173,7 @@ var getChatHistory = exports.getChatHistory = function getChatHistory(req, res, 
         };
 
         for (var i = 0; i < messageIDs.length; i++) {
-          _loop(i);
+          _loop3(i);
         }
 
         Promise.all(promisesArray).then(function (messageObjects) {

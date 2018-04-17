@@ -29,7 +29,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function saveAthlete(athlete) {
   console.log('\n\n\nprinting new athlete//// cleaning');
-  //console.log(athlete);
+  // console.log(athlete);
 
   athlete.save(function (err, athlete) {
     if (err) return console.error(err);
@@ -64,18 +64,18 @@ function getStravaAthlete(token, athlete, user) {
     _stravaV2.default.athlete.get({ access_token: token }, function (err, payload, limits) {
       if (!err) {
         var coords = [-147.349442, 64.751114];
-        var imgUrl = "http://www.runguides.com/assets/running-icon.svg";
+        var imgUrl = 'http://www.runguides.com/assets/running-icon.svg';
         var age = 21;
-        var bio = "I'm on Strava!";
+        var bio = 'I\'m on Strava!';
         var preferences = {
-          "gender": "All",
-          "pace": [0, 10],
-          "age": [0, 100],
-          "proximity": 10000
+          gender: 'All',
+          pace: [0, 10],
+          age: [0, 100],
+          proximity: 10000
         };
 
         var objects = [];
-        //console.log(payload);
+        // console.log(payload);
         athlete.id = payload.id;
         athlete.athlete_type = payload.athlete_type;
         athlete.email = payload.email;
@@ -95,9 +95,10 @@ function getStravaAthlete(token, athlete, user) {
         user.age = age;
         user.imageURL = imgUrl;
         user.location = coords;
-        //console.log("XXXXXXXXX");
-        //console.log(user);
-        //console.log(athlete);
+        user.thirdPartyIds.strava = payload.id;
+        // console.log("XXXXXXXXX");
+        // console.log(user);
+        // console.log(athlete);
         objects[0] = user;
         objects[1] = athlete;
         fulfill(objects);
@@ -157,7 +158,7 @@ function getStravaStats(token, totalActivityCount, objects) {
         // user data update
         objects[0].data.totalMilesRun = payload.all_run_totals.distance * 0.000621371;
         objects[0].data.totalElevationClimbed = payload.all_run_totals.elevation_gain;
-        objects[0].data.AveragePace = payload.all_run_totals.moving_time / 60 / (payload.all_run_totals.distance * 0.000621371);
+        // runs per week and average run length
       } else {
         console.log('we getting errors mate');
         console.log(err);
@@ -192,7 +193,7 @@ function getStravaKOMS(token, athlete) {
       // console.log('Koms');
       // console.log(athlete);
     } else {
-      console.log("KOMS error");
+      console.log('KOMS error');
       console.log(err);
       res.json({ err: err });
     }
@@ -201,7 +202,7 @@ function getStravaKOMS(token, athlete) {
 
 function listActivities(token, page) {
   var activities = [];
-  console.log("Page: " + page);
+  console.log('Page: ' + page);
   return new Promise(function (fulfill, reject) {
     _stravaV2.default.athlete.listActivities({ access_token: token, page: page + 1, per_page: 200 }, function (err, payload, limits) {
       if (!err) {
@@ -235,7 +236,7 @@ function getActivities(token, totalActivityCount, athlete) {
   var pages = totalActivityCount / 200 + 1;
 
   return new Promise(function (fulfill, reject) {
-    console.log("Get activities");
+    console.log('Get activities');
     console.log(Array.from(Array(Math.floor(pages)).keys()));
     var promises = Array.from(Array(Math.floor(pages)).keys()).map(function (x) {
       return listActivities(token, x);
@@ -244,13 +245,13 @@ function getActivities(token, totalActivityCount, athlete) {
       var newActivityList = activityList.reduce(function (prev, curr) {
         return prev.concat(curr);
       });
-      //console.log('\n\n NEW ACTIVITIES LIST', newActivityList);
+      // console.log('\n\n NEW ACTIVITIES LIST', newActivityList);
 
       var list = athlete.listActivities.concat(newActivityList);
-      //console.log('activities updated');
-      //console.log('THIS IS THE NEW LIST: ', list);
+      // console.log('activities updated');
+      // console.log('THIS IS THE NEW LIST: ', list);
       athlete.listActivities = list;
-      //console.log(athlete);
+      // console.log(athlete);
       fulfill(athlete);
     }).catch(function (error) {
       console.log(error);
@@ -295,11 +296,10 @@ var getData = exports.getData = function getData(req, res, next) {
     getStravaKOMS(token, newObjects[1]);
     getStravaStats(token, totalActivityCount, newObjects).then(function (newtotalActivityCount) {
       // this function is executed after function1
-      console.log('made it here???');
       // respond with the user object
       res.json(newObjects[0]);
       // save the user object to the database
-      newObjects[0].save(function (err, user) {
+      newObjects[0].save(function (err, newUser) {
         if (err) return console.error(err);
         // res.json(athlete);
       });
@@ -340,24 +340,24 @@ function cleanSegments(athlete, newSegList) {
         var objIndex = listToAdd.findIndex(function (obj) {
           return obj.id == newSegList[index].id;
         });
-        console.log("Before update: ", listToAdd[objIndex]);
+        console.log('Before update: ', listToAdd[objIndex]);
         listToAdd[objIndex].count += 1;
         if (newSegList[index].elapsedTime < listToAdd[objIndex].elapsedTime) {
           listToAdd[objIndex].elapsedTime = newSegList[index].elapsedTime;
           listToAdd[objIndex].komRank = newSegList[index].komRank;
         }
-        console.log("After update: ", listToAdd[objIndex]);
+        console.log('After update: ', listToAdd[objIndex]);
       } else {
         listofIds.push(newSegList[index].id);
         listToAdd.push(value);
-        console.log("in the else");
+        console.log('in the else');
         // console.log(listofIds);
       }
-      //console.log(newSegList[index].id);
+      // console.log(newSegList[index].id);
       // console.log(index);
     });
 
-    //console.log(listofIds);
+    // console.log(listofIds);
 
     athlete.listSegments = listToAdd;
     console.log(athlete.listSegments);
@@ -369,12 +369,10 @@ function listSegments(token, id) {
   var segments = [];
 
   return new Promise(function (fulfill, reject) {
-
     _stravaV2.default.activities.get({ access_token: token, id: id }, function (err, payload, limits) {
       if (!err) {
         if (payload.segment_efforts.length) {
           for (var segs = 0; segs < payload.segment_efforts.length; segs += 1) {
-
             var segment = {
               title: payload.segment_efforts[segs].name,
               id: payload.segment_efforts[segs].segment.id,
@@ -384,7 +382,7 @@ function listSegments(token, id) {
               komRank: payload.segment_efforts[segs].kom_rank,
               count: 1
             };
-            //console.log(segment);
+            // console.log(segment);
             segments.push(segment);
           }
           fulfill(segments);
@@ -417,7 +415,7 @@ function getSegments(athlete, token) {
       var newSegmentList = segmentList.reduce(function (prev, curr) {
         return prev.concat(curr);
       });
-      //console.log('\n\n NEW Segment LIST', newSegmentList);
+      // console.log('\n\n NEW Segment LIST', newSegmentList);
 
       // ****** const list = athlete.listSegments.concat(newSegmentList);
 
@@ -428,7 +426,7 @@ function getSegments(athlete, token) {
       // console.log(athlete);
       fulfill(newSegmentList);
     }).catch(function (error) {
-      console.log("the error is in get segments");
+      console.log('the error is in get segments');
       console.log(error);
       reject(error);
     });

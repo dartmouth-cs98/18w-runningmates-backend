@@ -48,9 +48,13 @@ router.route('/sign-s3').get(_s2.default);
 router.route('/users/:email').get(Users.getUser) // Get User
 .post(Users.updateUser); // Update User
 
+router.route('/user/:email').get(Users.getUser).post(Users.profileUpdate);
+
 router.route('/users').get(Users.getUsers); // Get Users
+router.route('/prefs').post(Users.updatePrefs);
 router.route('/match').post(Users.match);
-router.get('/chatHistory', Chat.getChatHistory).get(Chat.getChatHistory);
+router.route('/chatHistory').get(Chat.getChatHistory);
+router.route('/chats').get(Chat.getChatsList);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
