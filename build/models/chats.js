@@ -12,7 +12,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var ChatSchema = new _mongoose.Schema({
   members: [],
-  messages: [{ type: _mongoose.Schema.ObjectId, ref: 'Message' }]
+  messages: [{ type: _mongoose.Schema.ObjectId, ref: 'Message' }],
+  mostRecentMessage: { type: _mongoose.Schema.ObjectId, ref: 'Message' }
 }, {
   toJSON: {
     virtuals: true

@@ -55,11 +55,11 @@ app.use(_bodyParser2.default.json());
 
 app.use('/api', _router2.default);
 
-// default index route
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/index.html');
-  // res.send('hi this is your Running mate');
-});
+// // default index route
+// app.get('/', (req, res) => {
+//   res.sendFile(`${__dirname}/index.html`);
+//   // res.send('hi this is your Running mate');
+// });
 
 // START THE SERVER
 // =============================================================================
@@ -74,7 +74,7 @@ var io = require('socket.io')(server);
 server.listen(port);
 
 app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
+  res.json({ message: 'welcome to running mates!' });
 });
 
 io.on('connection', function (socket) {
@@ -82,7 +82,7 @@ io.on('connection', function (socket) {
 
   socket.on('chat message', function (msg) {
     console.log('message: ' + msg);
-    io.emit('chat message', msg);
+    // io.emit('chat message', msg);
     chatActions.saveNewMessage(msg);
   });
 });

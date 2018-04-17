@@ -312,13 +312,13 @@ training buddy
 function sortUsers(activeUser, users, preferences) {
   let sortedUsers =[];
   let strava, nike, appleHealthKit, recommendationText;
-  if (activeUser.thirdPartyIds['strava']) {
+  if ('strava' in activeUser.thirdPartyIds) {
     strava === true;
   }
-  if (activeUser.thirdPartyIds['nike']) {
+  if ('nike' in activeUser.thirdPartyIds) {
     nike === true;
   }
-  if (activeUser.thirdPartyIds['appleHealthKit']) {
+  if ('appleHealthKit' in activeUser.thirdPartyIds) {
     appleHealthKit === true;
   }
   return new Promise((fulfill, reject) => {
@@ -451,18 +451,18 @@ function sortUsers(activeUser, users, preferences) {
             }
           }
 
-          // Strava Check
-          if (strava && user.thirdPartyIds['strava']) {
-
-          }
-          // Nike check
-          if (nike && user.thirdPartyIds['nike']) {
-
-          }
-          // Apple Health Kit Check
-          if (appleHealthKit && user.thirdPartyIds['appleHealthKit']) {
-
-          }
+          // // Strava Check
+          // if (strava && ('strava' in user.thirdPartyIds)) {
+          //
+          // }
+          // // Nike check
+          // if (nike && ('nike' in user.thirdPartyIds)) {
+          //
+          // }
+          // // Apple Health Kit Check
+          // if (appleHealthKit && ('appleHealthKit' in user.thirdPartyIds)) {
+          //
+          // }
           sortedUsers.push({user: user, matchReason: recommendationText, score: userPoints});
 
 
