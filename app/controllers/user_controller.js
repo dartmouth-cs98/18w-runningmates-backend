@@ -524,7 +524,7 @@ export const getUsers = (req, res) => {
       .then((users) =>{
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Users Limited by MaxUsers
-        sortUsers(activeUser, users, preferences)
+        sortUsers(user, users, preferences)
         .then((sortedUsers) => {
           res.json(sortedUsers);
         })
