@@ -312,14 +312,17 @@ training buddy
 function sortUsers(activeUser, users, preferences) {
   let sortedUsers =[];
   let strava, nike, appleHealthKit, recommendationText;
-  if ('strava' in activeUser.thirdPartyIds) {
-    strava === true;
-  }
-  if ('nike' in activeUser.thirdPartyIds) {
-    nike === true;
-  }
-  if ('appleHealthKit' in activeUser.thirdPartyIds) {
-    appleHealthKit === true;
+
+  if (activeUser.hasOwnProperty(thirdPartyIds)) {
+    if ('strava' in activeUser.thirdPartyIds) {
+      strava === true;
+    }
+    if ('nike' in activeUser.thirdPartyIds) {
+      nike === true;
+    }
+    if ('appleHealthKit' in activeUser.thirdPartyIds) {
+      appleHealthKit === true;
+    }
   }
   return new Promise((fulfill, reject) => {
       for (let key in users) {
@@ -346,123 +349,142 @@ function sortUsers(activeUser, users, preferences) {
             }
 
           // Check which if any desired goals are the same
-          for (let index in activeUser.desiredGoal) {
-            let goal = activeUser.desiredGoal[index];
-            if (activeUser.desiredGoal.includes(goal)){
-              userPoints += 10;
+          if (activeUser.hasOwnProperty('desiredGoal') && (user.hasOwnProperty('desiredGoal'))) {
+            for (let index in activeUser.desiredGoal) {
+              let goal = activeUser.desiredGoal[index];
+              if (activeUser.desiredGoal.includes(goal)){
+                userPoints += 10;
 
-              if (!recommendationText) {
-                recommendationText = `You both want to ${goal}`;
+                if (!recommendationText) {
+                  recommendationText = `You both want to ${goal}`;
+                }
               }
             }
           }
 
 
-          /*
-          ------------------------------------
-          Average Run Length Preferences Check
-          ------------------------------------
-          */
-          /*
-          If potential match's average run length is in user pref range,
-          add: 10 Points
-          */
-          if ((user.data.averageRunLength >= activeUser.preferences.runLength[0]) && (user.data.averageRunLength <= activeUser.preferences.runLength[1])) {
-            userPoints += 10;
+          if (activeUser.hasOwnProperty('data') && user.hasOwnProperty('data')) {
 
-            if (!recommendationText) {
-              recommendationText = `${user.firstName}'s average run length is in your preferred range'`;
-            }
-          }
+            /*
+            ------------------------------------
+            Average Run Length Preferences Check
+            ------------------------------------
+            */
 
-          /*
-          Else based on difference to closest part of range, apply state-of-art formulas for determining accurate amount of points
-          add: 10 Points
-          */
+            if (activeUser.data.hasOwnProperty('averageRunLength') && user.data.hasOwnProperty('averageRunLength')) {
 
-          else {
-            let lengthDifference;
-            if ((user.data.averageRunLength < activeUser.preferences.runLength[0])) {
-              lengthDifference = activeUser.preferences.runLength[0] - user.data.averageRunLength
-              userPoints += (10 - (3 * user.data.averageRunLength));
-              if (!recommendationText) {
-                recommendationText = `${user.firstName}'s average run length is slightly below your preferred average run length range`;
+              /*
+              If potential match's average run length is in user pref range,
+              add: 10 Points
+              */
+              if ((user.data.averageRunLength >= activeUser.preferences.runLength[0]) && (user.data.averageRunLength <= activeUser.preferences.runLength[1])) {
+                userPoints += 10;
+
+                if (!recommendationText) {
+                  recommendationText = `${user.firstName}'s average run length is in your preferred range'`;
+                }
+              }
+
+              /*
+              Else based on difference to closest part of range, apply state-of-art formulas for determining accurate amount of points
+              add: 10 Points
+              */
+
+              else {
+                let lengthDifference;
+                if ((user.data.averageRunLength < activeUser.preferences.runLength[0])) {
+                  lengthDifference = activeUser.preferences.runLength[0] - user.data.averageRunLength
+                  userPoints += (10 - (3 * user.data.averageRunLength));
+                  if (!recommendationText) {
+                    recommendationText = `${user.firstName}'s average run length is slightly below your preferred average run length range`;
+                  }
+                }
+
+                else {
+                  lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength
+                  userPoints += (10 + (1.5 * user.data.averageRunLength));
+                  if (!recommendationText) {
+                    recommendationText = `${user.firstName}'s average run length is slightly above your preferred average run length range`;
+                  }
+
+                }
+              }
+
+              /*
+              ------------------------------------
+              Personal Run Length Check
+              ------------------------------------
+              */
+
+              if (user.data.averageRunLength === activeUser.data.averageRunLength){
+                userPoints += 10;
+                if (!recommendationText) {
+                  recommendationText = `${user.firstName}'s average run length is the same as your average run length`;
+                }
+              }
+              else if  (user.data.averageRunLength < activeUser.data.averageRunLength){
+                let runningLengthDifference = activeUser.data.averageRunLength - user.data.averageRunLength
+                userPoints += (10 + (2 * runningLengthDifference));
+                if (!recommendationText) {
+                  recommendationText = `${user.firstName}'s average run length is slightly below your average run length`;
+                }
+              }
+              else {
+                let runningLengthDifference = user.data.averageRunLength - activeUser.data.averageRunLength
+                userPoints += (10 - (2 * runningLengthDifference));
+                if (!recommendationText) {
+                  recommendationText = `${user.firstName}'s average run length is slightly above your average run length`;
+                }
               }
             }
 
-            else {
-              lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength
-              userPoints += (10 + (1.5 * user.data.averageRunLength));
-              if (!recommendationText) {
-                recommendationText = `${user.firstName}'s average run length is slightly above your preferred average run length range`;
+
+            /*
+            ------------------------------------
+            Runs Per Week Check
+            ------------------------------------
+            */
+
+            if ((activeUser.data.hasOwnProperty('runsPerWeek')) && (user.data.hasOwnProperty(runsPerWeek))) {
+              if (user.data.runsPerWeek === activeUser.data.runsPerWeek){
+                userPoints += 10;
+                if (!recommendationText) {
+                  recommendationText = `${user.firstName}'s runs per week is equal to your runs per week`;
+                }
               }
-
-            }
-          }
-          /*
-          ------------------------------------
-          Personal Run Length Check
-          ------------------------------------
-          */
-          if (user.data.averageRunLength === activeUser.data.averageRunLength){
-            userPoints += 10;
-            if (!recommendationText) {
-              recommendationText = `${user.firstName}'s average run length is the same as your average run length`;
-            }
-          }
-          else if  (user.data.averageRunLength < activeUser.data.averageRunLength){
-            let runningLengthDifference = activeUser.data.averageRunLength - user.data.averageRunLength
-            userPoints += (10 + (2 * runningLengthDifference));
-            if (!recommendationText) {
-              recommendationText = `${user.firstName}'s average run length is slightly below your average run length`;
-            }
-          }
-          else {
-            let runningLengthDifference = user.data.averageRunLength - activeUser.data.averageRunLength
-            userPoints += (10 - (2 * runningLengthDifference));
-            if (!recommendationText) {
-              recommendationText = `${user.firstName}'s average run length is slightly above your average run length`;
+              else if  (user.data.runsPerWeek < activeUser.data.runsPerWeek){
+                let runsCountDifference = activeUser.data.runsPerWeek - user.data.runsPerWeek
+                userPoints += (10 + (3 * runsCountDifference));
+                if (!recommendationText) {
+                  recommendationText = `${user.firstName}'s runs per week is slightly below your runs per week`;
+                }
+              }
+              else {
+                let runsCountDifference = user.data.runsPerWeek - activeUser.data.runsPerWeek
+                userPoints += (10 - (3 * runsCountDifference));
+                if (!recommendationText) {
+                  recommendationText = `${user.firstName}'s runs per week is slightly above your runs per week`;
+                }
+              }
             }
           }
 
-          /*
-          ------------------------------------
-          Runs Per Week Check
-          ------------------------------------
-          */
-          if (user.data.runsPerWeek === activeUser.data.runsPerWeek){
-            userPoints += 10;
-            if (!recommendationText) {
-              recommendationText = `${user.firstName}'s runs per week is equal to your runs per week`;
-            }
-          }
-          else if  (user.data.runsPerWeek < activeUser.data.runsPerWeek){
-            let runsCountDifference = activeUser.data.runsPerWeek - user.data.runsPerWeek
-            userPoints += (10 + (3 * runsCountDifference));
-            if (!recommendationText) {
-              recommendationText = `${user.firstName}'s runs per week is slightly below your runs per week`;
-            }
-          }
-          else {
-            let runsCountDifference = user.data.runsPerWeek - activeUser.data.runsPerWeek
-            userPoints += (10 - (3 * runsCountDifference));
-            if (!recommendationText) {
-              recommendationText = `${user.firstName}'s runs per week is slightly above your runs per week`;
-            }
-          }
 
-          // // Strava Check
-          // if (strava && ('strava' in user.thirdPartyIds)) {
+          // if (user.hasOwnProperty(thirdPartyIds)) {
+          //   // Strava Check
+          //   if (strava && ('strava' in user.thirdPartyIds)) {
           //
-          // }
-          // // Nike check
-          // if (nike && ('nike' in user.thirdPartyIds)) {
+          //   }
+          //   // Nike check
+          //   if (nike && ('nike' in user.thirdPartyIds)) {
           //
-          // }
-          // // Apple Health Kit Check
-          // if (appleHealthKit && ('appleHealthKit' in user.thirdPartyIds)) {
+          //   }
+          //   // Apple Health Kit Check
+          //   if (appleHealthKit && ('appleHealthKit' in user.thirdPartyIds)) {
           //
+          //   }
           // }
+
           sortedUsers.push({user: user, matchReason: recommendationText, score: userPoints});
 
 
