@@ -3,18 +3,27 @@ import Message from '../models/messages';
 import User from '../models/user';
 
 
-function compareByDate(msg1, msg2) {
+function compareMessagesByTime(msg1, msg2) {
   if (msg1.time < msg2.time) { return 1; }
   if (msg1.time > msg2.time) { return -1; }
   return 0;
 }
 
+function compareChatsByTime(chat1, chat2) {
+  if (chat1.time < chat2.time) { return 1; }
+  if (chat1.time > chat2.time) { return -1; }
+  return 0;
+}
+
 export const saveNewMessage = (msg) => {
-  const time = Date.Now;
+  const time = Date.now();
   const message = msg.message;
   const sentBy = msg.sentBy;
   const chatID = msg.chatID;
   const recipient = msg.recipient;
+
+  console.log("time is: ");
+  console.log(time);
 
   const newMessage = new Message();
   newMessage.time = time;
@@ -31,7 +40,8 @@ export const saveNewMessage = (msg) => {
       newChat.members.push(recipient);
       newChat.messages = [];
       newChat.messages.push(result.id);
-      newChat.mostRecentMessage = result.id;
+      newChat.mostRecentMessage = message;
+      newChat.lastUpdated = time;
 
       newChat.save().then(() => {
         console.log('saved new chat successfully');
@@ -45,7 +55,8 @@ export const saveNewMessage = (msg) => {
           currentMessages.push(result.id);
           Chat.update({ _id: chatID }, {
             messages: currentMessages,
-            mostRecentMessage: result.id
+            mostRecentMessage: message,
+            lastUpdated: time,
           }).then(() => {
             console.log('updated chat successfully');
           }).catch((err) => {
@@ -108,7 +119,27 @@ export const getChatsList = (req, res) => {
       outerPromiseArray.push(outerPromise);
     }
       Promise.all(outerPromiseArray).then((chatsResponse) => {
-        res.send(chatsResponse);
+        // sort by date/time here first before sending the response
+        let sortedChats = chatsResponse.sort(compareChatsByTime);
+
+        for (let i = 0; i < sortedChats.length; i++) {
+          let chatTime = new Date(sortedChats[i].lastUpdated);
+          console.log("chatTime: " + chatTime);
+          let now = new Date();
+
+          let chatYear = chatTime.getFullYear();
+          let chatMonth = chatTime.getMonth();
+          let chatDay = chatTime.getDate();
+
+          if (chatDay != now.getDate() || chatMonth != now.getMonth() || chatYear != now.getFullYear()) {
+            sortedChats[i].lastUpdated = chatMonth + "/" + chatDay + "/" + chatYear;
+          } else {
+            sortedChats[i].lastUpdated = chatTime.getHours() + ":" + chatTime.getSeconds();
+          }
+          console.log("last updated: " + sortedChats[i].lastUpdated);
+        }
+
+        res.send(sortedChats);
       });
     }).catch((err) => {
       console.log("error fetching chats");
@@ -148,7 +179,7 @@ export const getChatHistory = (req, res, next) => {
       Promise.all(promisesArray).then((messageObjects) => {
         if (messageObjects) {
           // sort the messageObjects array
-          const sortedObjects = messageObjects.sort(compareByDate);
+          const sortedObjects = messageObjects.sort(compareMessagesByTime);
 
           // this if statement is not quite tested yet
           if (pageNumber) {
