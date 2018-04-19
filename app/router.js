@@ -31,7 +31,7 @@ router.route('/users/:email')
   .post(Users.updateUser); // Update User
 
 router.route('/user/:email')
-  .get(Users.getProfile)
+  .get(Users.getUser)
   .post(Users.profileUpdate);
 
 router.route('/users')
