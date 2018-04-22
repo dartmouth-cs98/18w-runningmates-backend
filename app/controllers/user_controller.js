@@ -517,6 +517,8 @@ function sortUsers(activeUser, users, preferences) {
 
 export const getUser = (req, res) => {
   const email = req.query.email;
+
+  User.findOne({"email": email})
   .then((user) => {
     res.json(user);
   })

@@ -149,8 +149,8 @@ export const getChatsList = (req, res) => {
 
 
 export const getChatHistory = (req, res, next) => {
-  const chatID = req.body.chatID;
-  const pageNumber = req.body.pageNumber;
+  const chatID = req.query.chatID;
+  const pageNumber = req.query.pageNumber;
 
   Chat.findOne({ _id: chatID }).then((result) => {
     if (result) {
