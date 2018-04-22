@@ -22,9 +22,6 @@ export const saveNewMessage = (msg) => {
   const chatID = msg.chatID;
   const recipient = msg.recipient;
 
-  console.log("time is: ");
-  console.log(time);
-
   const newMessage = new Message();
   newMessage.time = time;
   newMessage.message = message;
