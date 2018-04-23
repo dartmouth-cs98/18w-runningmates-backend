@@ -2,10 +2,10 @@ import Chat from '../models/chats';
 import Message from '../models/messages';
 import User from '../models/user';
 
-
+// sorts in reverse order; newer messages sorted to end of array
 function compareMessagesByTime(msg1, msg2) {
-  if (msg1.time < msg2.time) { return 1; }
-  if (msg1.time > msg2.time) { return -1; }
+  if (msg1.time > msg2.time) { return 1; }
+  if (msg1.time < msg2.time) { return -1; }
   return 0;
 }
 
