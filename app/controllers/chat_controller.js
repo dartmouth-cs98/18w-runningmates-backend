@@ -95,11 +95,11 @@ export const getChatsList = (req, res) => {
             if (currentChat.members[j] != userID) {
 
               const innerPromise = new Promise((resolve, reject) => {
-                let name = "";
+                // let name = "";
 
                 User.findOne({_id: currentChat.members[j]}).then((user) => {
-                  name += user.firstName + " " + user.lastName;
-                  resolve(name);
+                  // name += user.firstName + " " + user.lastName;
+                  resolve(user);
                 }).catch((err) => {
                   console.log("error finding user " + currentChat.members[j]);
                   reject(err);
@@ -109,7 +109,18 @@ export const getChatsList = (req, res) => {
             }
           }
           Promise.all(innerPromiseArray).then((recipients) => {
-            currentChat.recipients = recipients;
+            let names = [];
+
+            for (let i = 0; i < recipients.length; i++) {
+              let name = recipients[i].firstName + " " + recipients[i].lastName;
+              names.push(name);
+            }
+
+            currentChat.recipients = names;
+            if (recipients.length > 0) {
+              currentChat.imageURL = recipients[0].imageURL
+            }
+
             resl(currentChat);
           });
         });
