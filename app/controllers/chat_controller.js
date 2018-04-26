@@ -2,16 +2,16 @@ import Chat from '../models/chats';
 import Message from '../models/messages';
 import User from '../models/user';
 
-
+// sorts in reverse order; newer messages sorted to end of array
 function compareMessagesByTime(msg1, msg2) {
-  if (msg1.time < msg2.time) { return 1; }
-  if (msg1.time > msg2.time) { return -1; }
+  if (msg1.time > msg2.time) { return 1; }
+  if (msg1.time < msg2.time) { return -1; }
   return 0;
 }
 
 function compareChatsByTime(chat1, chat2) {
-  if (chat1.time < chat2.time) { return 1; }
-  if (chat1.time > chat2.time) { return -1; }
+  if (chat1.lastUpdated < chat2.lastUpdated) { return 1; }
+  if (chat1.lastUpdated > chat2.lastUpdated) { return -1; }
   return 0;
 }
 
@@ -21,9 +21,6 @@ export const saveNewMessage = (msg) => {
   const sentBy = msg.sentBy;
   const chatID = msg.chatID;
   const recipient = msg.recipient;
-
-  console.log("time is: ");
-  console.log(time);
 
   const newMessage = new Message();
   newMessage.time = time;
@@ -79,10 +76,10 @@ export const saveNewMessage = (msg) => {
 
 export const getChatsList = (req, res) => {
 
-  let userEmail = req.query.user;
+  let userID = req.query.user;
 
-  if (userEmail) {
-    Chat.find({members: userEmail}).then((chats) => {
+  if (userID) {
+    Chat.find({members: userID}).then((chats) => {
       // let chatsResponse = Object.assign({}, chats);
 
       let outerPromiseArray = [];
@@ -95,14 +92,14 @@ export const getChatsList = (req, res) => {
         const outerPromise = new Promise((resl, rej) => {
 
           for (let j = 0; j < currentChat.members.length; j++) {
-            if (currentChat.members[j] != userEmail) {
+            if (currentChat.members[j] != userID) {
 
               const innerPromise = new Promise((resolve, reject) => {
-                let name = "";
+                // let name = "";
 
-                User.findOne({email: currentChat.members[j]}).then((user) => {
-                  name += user.firstName + " " + user.lastName;
-                  resolve(name);
+                User.findOne({_id: currentChat.members[j]}).then((user) => {
+                  // name += user.firstName + " " + user.lastName;
+                  resolve(user);
                 }).catch((err) => {
                   console.log("error finding user " + currentChat.members[j]);
                   reject(err);
@@ -112,7 +109,18 @@ export const getChatsList = (req, res) => {
             }
           }
           Promise.all(innerPromiseArray).then((recipients) => {
-            currentChat.recipients = recipients;
+            let names = [];
+
+            for (let i = 0; i < recipients.length; i++) {
+              let name = recipients[i].firstName + " " + recipients[i].lastName;
+              names.push(name);
+            }
+
+            currentChat.recipients = names;
+            if (recipients.length > 0) {
+              currentChat.imageURL = recipients[0].imageURL
+            }
+
             resl(currentChat);
           });
         });
@@ -124,7 +132,6 @@ export const getChatsList = (req, res) => {
 
         for (let i = 0; i < sortedChats.length; i++) {
           let chatTime = new Date(sortedChats[i].lastUpdated);
-          console.log("chatTime: " + chatTime);
           let now = new Date();
 
           let chatYear = chatTime.getFullYear();
@@ -134,9 +141,8 @@ export const getChatsList = (req, res) => {
           if (chatDay != now.getDate() || chatMonth != now.getMonth() || chatYear != now.getFullYear()) {
             sortedChats[i].lastUpdated = chatMonth + "/" + chatDay + "/" + chatYear;
           } else {
-            sortedChats[i].lastUpdated = chatTime.getHours() + ":" + chatTime.getSeconds();
+            sortedChats[i].lastUpdated = chatTime.getHours() + ":" + chatTime.getMinutes();
           }
-          console.log("last updated: " + sortedChats[i].lastUpdated);
         }
 
         res.send(sortedChats);
@@ -154,8 +160,8 @@ export const getChatsList = (req, res) => {
 
 
 export const getChatHistory = (req, res, next) => {
-  const chatID = req.body.chatID;
-  const pageNumber = req.body.pageNumber;
+  const chatID = req.query.chatID;
+  const pageNumber = req.query.pageNumber;
 
   Chat.findOne({ _id: chatID }).then((result) => {
     if (result) {

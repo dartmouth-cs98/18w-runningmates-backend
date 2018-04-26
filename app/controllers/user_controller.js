@@ -1,6 +1,7 @@
 import jwt from 'jwt-simple';
 
 import User from '../models/user';
+import Chat from '../models/chats';
 import config from '../config';
 
 const maxUsers = 15;
@@ -74,6 +75,17 @@ export const match = (req, res, next) => {
             // / res.json("User does not exist");
           }
         });
+
+        // create a new Chat with both users in it
+        let newChat = new Chat();
+        newChat.members = [targetId, userId];
+        newChat.save().then(() => {
+          console.log("saved new chat for match");
+        }).catch((err) => {
+          console.log("error creating new chat for match");
+          console.log(err);
+        });
+
       } else {
         res.send({ response: 'no' });
 
@@ -504,14 +516,13 @@ function sortUsers(activeUser, users, preferences) {
 */
 
 export const getUser = (req, res) => {
-  const email = req.body.email;
-  // console.log("email: " + email);
+  const email = req.query.email;
+  console.log('in get user'); 
+
   User.findOne({"email": email})
   .then((user) => {
-    // console.log("FOUND USER:")
-    // console.log(user)
-    // console.log("---------")
     res.json(user);
+    console.log('this is user ', user);
   })
   .catch((error) => {
     console.log(error, 'find one ERROR');
