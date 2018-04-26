@@ -56,9 +56,26 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('a user connected');
 
+  // join a room identified by the chat ID
+  // code related to joining rooms developed with help from: https://gist.github.com/crtr0/2896891
+  socket.on('join room', function(chatID) {
+    console.log("joining room " + chatID);
+
+    // leave room user was previously in
+    if (socket.room) {
+      socket.leave(socket.room)
+    }
+
+    socket.room = chatID
+    socket.join(chatID);
+  });
+
   socket.on('chat message', (msg) => {
+    let room = msg.chatID;
+    console.log("room: " + room);
+
     console.log(`message: ${msg}`);
-     io.emit('chat message', msg);
+    io.sockets.in(room).emit('chat message', msg);
     chatActions.saveNewMessage(msg);
   });
 });

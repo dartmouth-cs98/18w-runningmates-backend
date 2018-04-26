@@ -517,10 +517,12 @@ function sortUsers(activeUser, users, preferences) {
 
 export const getUser = (req, res) => {
   const email = req.query.email;
+  console.log('in get user'); 
 
   User.findOne({"email": email})
   .then((user) => {
     res.json(user);
+    console.log('this is user ', user);
   })
   .catch((error) => {
     console.log(error, 'find one ERROR');
