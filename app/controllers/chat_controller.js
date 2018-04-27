@@ -145,6 +145,8 @@ export const getChatsList = (req, res) => {
           }
         }
 
+        console.log("------BEFORE SENDING-----");
+        console.log(sortedChats);
         res.send(sortedChats);
       });
     }).catch((err) => {
