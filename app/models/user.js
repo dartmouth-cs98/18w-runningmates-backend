@@ -9,6 +9,9 @@ const UserSchema = new Schema({
   bio: String,
   gender: String,
   age: Number,
+  birthMonth: String,
+  birthDay: Number,
+  birthYear: Number,
   location: {
     type: [],
     index: { type: '2dsphere', sparse: true },
@@ -25,7 +28,7 @@ const UserSchema = new Schema({
   password: String,
   token: String,
   preferences: {
-    gender: String,
+    gender: [], // List of genders to have in preferences (female, male, non non-binary)
     runLength: [], // Range [minMiles, maxMiles]
     age: [], // Range [minAge, maxAge]
     proximity: Number,
