@@ -333,10 +333,10 @@ function sortUsers(activeUser, users, preferences) {
             continue;
           }
           // Sort by gender
-          if ((preferences.gender == "Female") || (preferences.gender == "Male")) {
-            if (user.gender !==  preferences.gender) {
+          genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+
+          if (!(if user.gender.toLowerCase() in activeUser.genderPref)) {
               continue;
-            }
           };
 
           // If not in age range
@@ -517,7 +517,7 @@ function sortUsers(activeUser, users, preferences) {
 
 export const getUser = (req, res) => {
   const email = req.query.email;
-  console.log('in get user'); 
+  console.log('in get user');
 
   User.findOne({"email": email})
   .then((user) => {
