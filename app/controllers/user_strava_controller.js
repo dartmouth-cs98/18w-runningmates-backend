@@ -62,6 +62,13 @@ function getStravaAthlete(token, athlete, user) {
         athlete.sex = payload.sex;
         athlete.firstName = payload.firstname;
         athlete.lastName = payload.lastname;
+        var createDate = new Date (payload.created_at);
+        athlete.createDate = createDate;
+        var currentDate = new Date (); 
+        var timeDiff = Math.abs(currentDate.getTime() - createDate.getTime());
+        var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+        athlete.diffDays = diffDays;  
+
 
         user.firstName = payload.firstname;
         user.lastName = payload.lastname;
@@ -145,6 +152,47 @@ function getStravaStats(token, totalActivityCount, objects) {
         // user data update
         objects[0].data.totalMilesRun = payload.all_run_totals.distance * 0.000621371;
         objects[0].data.totalElevationClimbed = payload.all_run_totals.elevation_gain;
+        
+
+        console.log("Weeks on the service: "); 
+        console.log(objects[1].diffDays/7); 
+
+        console.log("total runs: ");
+        console.log(payload.all_run_totals.count); 
+        console.log("total miles: ");
+        console.log(payload.all_run_totals.distance); 
+        // runs per week
+        let totalRunsPerWeek = payload.all_run_totals.count/ objects[1].diffDays / 7;
+        let recentRunsPerWeek = payload.recent_run_totals.count/ 4; 
+        if (totalRunsPerWeek > recentRunsPerWeek ){
+          objects[0].data.runsPerWeek = totalRunsPerWeek;
+        } else {
+          objects[0].data.runsPerWeek = recentRunsPerWeek;
+        }
+        console.log("runs Per week: ");
+        console.log(objects[0].data.runsPerWeek);    
+
+        // miles per week 
+        let totalMilesPerWeek = objects[0].data.totalMilesRun/ objects[1].diffDays / 7;
+        let recentMilesPerWeek = payload.recent_run_totals.distance/4; 
+        if (totalMilesPerWeek > recentMilesPerWeek){ 
+          objects[0].data.milesPerWeek  = totalMilesPerWeek; 
+        } else { 
+          objects[0].data.milesPerWeek  = recentMilesPerWeek;
+        }
+        console.log("miles Per week: ");
+        console.log(objects[0].data.milesPerWeek);  
+        // Average run length 
+        let totalAvgRun = 0;  
+        if (payload.all_run_totals.count == "Nan"){
+          totalAvgRun = 0; 
+        } else { 
+          totalAvgRun = objects[0].data.totalMilesRun/payload.all_run_totals.count;
+        }
+ 
+        objects[0].data.averageRunLength = totalAvgRun; 
+        console.log("average run length: ");
+        console.log(objects[0].data.averageRunLength);  
         // runs per week and average run length
       } else {
         console.log('we getting errors mate');
@@ -199,11 +247,14 @@ function listActivities(token, page) {
       // console.log(payload);
       // console.log(aL.length);
         for (let j = 0; j < results.length; j += 1) {
+          // keeping only running activities 
           const activity = {
             id: payload[j].id,
             name: payload[j].name,
           };
-          activities.push(activity);
+          if (payload[j].type == "Run"){
+            activities.push(activity);
+          }
         }
         fulfill(activities);
       } else {
