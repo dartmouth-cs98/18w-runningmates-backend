@@ -53,8 +53,26 @@ app.get('/', (req, res) => {
   res.json({ message: 'welcome to running mates!' });
 });
 
+
+let userDictionary = {};
+let clients = [];
+
+
 io.on('connection', (socket) => {
   console.log('a user connected');
+  clients.push(socket.id);
+
+  socket.on('login', (userInfo) => {
+    // need to check if user is signed in on another device already
+    console.log("login socket");
+    userDictionary[userInfo] = socket.id;
+    console.log(userDictionary);
+  });
+
+  socket.on('logout', (userInfo) => {
+    // remove user/associated device from dictionary
+    delete userDictionary[userInfo];
+  });
 
   // join a room identified by the chat ID
   // code related to joining rooms developed with help from: https://gist.github.com/crtr0/2896891
@@ -72,11 +90,19 @@ io.on('connection', (socket) => {
 
   socket.on('chat message', (msg) => {
     let room = msg.chatID;
-    console.log("room: " + room);
+    const recipient = msg.recipient;
+    const socketid = userDictionary[recipient];
 
-    console.log(`message: ${msg}`);
     io.sockets.in(room).emit('chat message', msg);
-    chatActions.saveNewMessage(msg);
+
+    chatActions.saveNewMessage(msg, () => {
+      // https://stackoverflow.com/questions/24041220/sending-message-to-a-specific-id-in-socket-io-1-0
+      if (io.sockets.connected[socketid]) {
+        console.log("socket " + socketid + "is connected");
+        io.sockets.connected[socketid].emit('message', 'hey, you got a message!');
+      }
+    });
+
   });
 });
 

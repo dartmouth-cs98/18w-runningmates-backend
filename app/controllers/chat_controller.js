@@ -15,7 +15,7 @@ function compareChatsByTime(chat1, chat2) {
   return 0;
 }
 
-export const saveNewMessage = (msg) => {
+export const saveNewMessage = (msg, cb) => {
   const time = Date.now();
   const message = msg.message;
   const sentBy = msg.sentBy;
@@ -32,9 +32,7 @@ export const saveNewMessage = (msg) => {
     // create a new chat
     if (!chatID) {
       const newChat = Chat();
-      newChat.members = [];
-      newChat.members.push(sentBy);
-      newChat.members.push(recipient);
+      newChat.members = [sentBy, recipient];
       newChat.messages = [];
       newChat.messages.push(result.id);
       newChat.mostRecentMessage = message;
@@ -42,6 +40,7 @@ export const saveNewMessage = (msg) => {
 
       newChat.save().then(() => {
         console.log('saved new chat successfully');
+        cb();
       }).catch((err) => {
         console.log(`error saving new chat: ${err}`);
       });
@@ -56,6 +55,7 @@ export const saveNewMessage = (msg) => {
             lastUpdated: time,
           }).then(() => {
             console.log('updated chat successfully');
+            cb();
           }).catch((err) => {
             console.log('error updating chat');
             console.log(err);
