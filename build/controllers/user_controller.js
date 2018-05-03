@@ -94,9 +94,9 @@ var match = exports.match = function match(req, res, next) {
         var newChat = new _chats2.default();
         newChat.members = [targetId, userId];
         newChat.save().then(function () {
-          console.log("saved new chat for match");
+          console.log('saved new chat for match');
         }).catch(function (err) {
-          console.log("error creating new chat for match");
+          console.log('error creating new chat for match');
           console.log(err);
         });
       } else {
@@ -324,15 +324,14 @@ function sortUsers(activeUser, users, preferences) {
         continue;
       }
       // Sort by gender
-      var genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
-      console.log("genderPref: ");
-      console.log(genderPref);
 
-      if (!genderPref.includes(user.gender.toLowerCase())) {
-        console.log("gender prefs don't match");
-        console.log(user.gender.toLowerCase());
-        continue;
-      };
+      if (!(typeof user.gender === "undefined") && !(typeof activeUser.preferences.gender === "undefined")) {
+        var genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+
+        if (!genderPref.includes(user.gender.toLowerCase())) {
+          continue;
+        };
+      }
 
       // If not in age range
       if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {
