@@ -336,8 +336,6 @@ function sortUsers(activeUser, users, preferences) {
             let genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
 
             if (!genderPref.includes(user.gender.toLowerCase())) {
-              console.log("gender prefs don't match");
-              console.log(user.gender.toLowerCase());
                 continue;
             };
           }
