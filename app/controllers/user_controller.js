@@ -77,15 +77,14 @@ export const match = (req, res, next) => {
         });
 
         // create a new Chat with both users in it
-        let newChat = new Chat();
+        const newChat = new Chat();
         newChat.members = [targetId, userId];
         newChat.save().then(() => {
-          console.log("saved new chat for match");
+          console.log('saved new chat for match');
         }).catch((err) => {
-          console.log("error creating new chat for match");
+          console.log('error creating new chat for match');
           console.log(err);
         });
-
       } else {
         res.send({ response: 'no' });
 
@@ -552,6 +551,8 @@ export const getUsers = (req, res) => {
       query.where('location').near({ center: {type: 'Point', coordinates: location}, maxDistance: maxDistance, spherical: true })
 
       .then((users) =>{
+        console.log('******************ussers');
+        console.log(users);
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Users Limited by MaxUsers
         sortUsers(user, users, preferences)
