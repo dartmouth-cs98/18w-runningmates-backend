@@ -342,7 +342,7 @@ function sortUsers(activeUser, users, preferences) {
 
 
           // If not in age range
-          if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {
+          if ((activeUser.preferences.age[1] < user.age) || (activeUser.preferences.age[0] > user.age)) {
               console.log("not in age range");
               continue;
             }
@@ -351,7 +351,6 @@ function sortUsers(activeUser, users, preferences) {
           if ('desiredGoals' in activeUser && ('desiredGoals' in user )) {
             for (let index in user.desiredGoals) {
               let goal = user.desiredGoals[index];
-              console.log(goal);
               if (activeUser.desiredGoals.includes(goal)){
                 userPoints += 10;
 
