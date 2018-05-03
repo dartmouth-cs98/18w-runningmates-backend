@@ -77,15 +77,14 @@ export const match = (req, res, next) => {
         });
 
         // create a new Chat with both users in it
-        let newChat = new Chat();
+        const newChat = new Chat();
         newChat.members = [targetId, userId];
         newChat.save().then(() => {
-          console.log("saved new chat for match");
+          console.log('saved new chat for match');
         }).catch((err) => {
-          console.log("error creating new chat for match");
+          console.log('error creating new chat for match');
           console.log(err);
         });
-
       } else {
         res.send({ response: 'no' });
 
@@ -332,15 +331,17 @@ function sortUsers(activeUser, users, preferences) {
             continue;
           }
           // Sort by gender
-          let genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
-          console.log("genderPref: ");
-          console.log(genderPref);
 
-          if (!genderPref.includes(user.gender.toLowerCase())) {
-            console.log("gender prefs don't match");
-            console.log(user.gender.toLowerCase());
-              continue;
-          };
+          if (!(typeof user.gender === "undefined") && !(typeof activeUser.preferences.gender === "undefined")) {
+            let genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+
+            if (!genderPref.includes(user.gender.toLowerCase())) {
+              console.log("gender prefs don't match");
+              console.log(user.gender.toLowerCase());
+                continue;
+            };
+          }
+
 
           // If not in age range
           if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {

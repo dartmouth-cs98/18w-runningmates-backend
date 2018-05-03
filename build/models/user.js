@@ -18,10 +18,13 @@ var UserSchema = new _mongoose.Schema({
   firstName: String,
   lastName: String,
   imageURL: String,
-  images: [{ data: Buffer, contentType: String }],
+  images: {},
   bio: String,
   gender: String,
   age: Number,
+  birthMonth: String,
+  birthDay: Number,
+  birthYear: Number,
   location: {
     type: [],
     index: { type: '2dsphere', sparse: true },
@@ -32,12 +35,13 @@ var UserSchema = new _mongoose.Schema({
   mates: [],
   potentialMates: [],
   blockedMates: [],
+  emergencyContacts: [],
   seenProfiles: [{ userID: Number, date: String }],
   email: { type: String, unique: true, lowercase: true },
   password: String,
   token: String,
   preferences: {
-    gender: String,
+    gender: [], // List of genders to have in preferences (female, male, non non-binary)
     runLength: [], // Range [minMiles, maxMiles]
     age: [], // Range [minAge, maxAge]
     proximity: Number
