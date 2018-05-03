@@ -308,7 +308,6 @@ training buddy
 
 function sortUsers(activeUser, users, preferences) {
   let sortedUsers =[];
-
   let strava, nike, appleHealthKit, recommendationText;
   if (activeUser.hasOwnProperty('thirdPartyIds')) {
     if ("strava" in activeUser.thirdPartyIds) {
@@ -333,9 +332,13 @@ function sortUsers(activeUser, users, preferences) {
             continue;
           }
           // Sort by gender
-          genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+          let genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+          console.log("genderPref: ");
+          console.log(genderPref);
 
-          if (!(if user.gender.toLowerCase() in activeUser.genderPref)) {
+          if (!genderPref.includes(user.gender.toLowerCase())) {
+            console.log("gender prefs don't match");
+            console.log(user.gender.toLowerCase());
               continue;
           };
 
