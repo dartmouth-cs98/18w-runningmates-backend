@@ -308,7 +308,6 @@ training buddy
 
 function sortUsers(activeUser, users, preferences) {
   let sortedUsers =[];
-
   let strava, nike, appleHealthKit, recommendationText;
   if (activeUser.hasOwnProperty('thirdPartyIds')) {
     if ("strava" in activeUser.thirdPartyIds) {
@@ -333,10 +332,14 @@ function sortUsers(activeUser, users, preferences) {
             continue;
           }
           // Sort by gender
-          if ((preferences.gender == "Female") || (preferences.gender == "Male")) {
-            if (user.gender !==  preferences.gender) {
+          let genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+          console.log("genderPref: ");
+          console.log(genderPref);
+
+          if (!genderPref.includes(user.gender.toLowerCase())) {
+            console.log("gender prefs don't match");
+            console.log(user.gender.toLowerCase());
               continue;
-            }
           };
 
           // If not in age range
@@ -517,7 +520,7 @@ function sortUsers(activeUser, users, preferences) {
 
 export const getUser = (req, res) => {
   const email = req.query.email;
-  console.log('in get user'); 
+  console.log('in get user');
 
   User.findOne({"email": email})
   .then((user) => {
