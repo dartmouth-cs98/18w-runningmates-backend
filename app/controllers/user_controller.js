@@ -331,18 +331,18 @@ function sortUsers(activeUser, users, preferences) {
             continue;
           }
           // Sort by gender
-          let genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
-          console.log("genderPref: ");
-          console.log(genderPref);
 
-          if (!genderPref.includes(user.gender.toLowerCase())) {
-            console.log("gender prefs don't match");
-            console.log(user.gender.toLowerCase());
-              continue;
-          };
+          if (!(typeof user.gender === "undefined") && !(typeof activeUser.preferences.gender === "undefined")) {
+            let genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+
+            if (!genderPref.includes(user.gender.toLowerCase())) {
+                continue;
+            };
+          }
+
 
           // If not in age range
-          if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {
+          if ((activeUser.preferences.age[1] < user.age) || (activeUser.preferences.age[0] > user.age)) {
               console.log("not in age range");
               continue;
             }
@@ -351,7 +351,6 @@ function sortUsers(activeUser, users, preferences) {
           if ('desiredGoals' in activeUser && ('desiredGoals' in user )) {
             for (let index in user.desiredGoals) {
               let goal = user.desiredGoals[index];
-              console.log(goal);
               if (activeUser.desiredGoals.includes(goal)){
                 userPoints += 10;
 

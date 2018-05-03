@@ -35,6 +35,7 @@ const UserStravaSchema = new Schema({
   sTotalElapsedTime: Number,
   sTotalElevationGain: Number,
   koms: [],
+  createDate: String,
   listActivities: [{ id: String, name: String }],
   listSegments:[{title: String, id: String, elapsedTime: Number, prRank: String, distance: Number, komRank: Number, count: Number}]
 });
