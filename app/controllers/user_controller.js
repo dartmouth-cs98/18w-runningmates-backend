@@ -158,7 +158,7 @@ export const signup = (req, res, next) => {
 
       user.save()
         .then((result) => {
-          res.send({ token: tokenForUser(result) });
+          res.send({ token: tokenForUser(result), user: result });
         })
         .catch((error) => {
           console.log(error);
