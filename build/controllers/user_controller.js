@@ -13,6 +13,10 @@ var _user = require('../models/user');
 
 var _user2 = _interopRequireDefault(_user);
 
+var _chats = require('../models/chats');
+
+var _chats2 = _interopRequireDefault(_chats);
+
 var _config = require('../config');
 
 var _config2 = _interopRequireDefault(_config);
@@ -84,6 +88,16 @@ var match = exports.match = function match(req, res, next) {
             console.log('user does not exist');
             // / res.json("User does not exist");
           }
+        });
+
+        // create a new Chat with both users in it
+        var newChat = new _chats2.default();
+        newChat.members = [targetId, userId];
+        newChat.save().then(function () {
+          console.log('saved new chat for match');
+        }).catch(function (err) {
+          console.log('error creating new chat for match');
+          console.log(err);
         });
       } else {
         res.send({ response: 'no' });
@@ -283,7 +297,6 @@ training buddy
 
 function sortUsers(activeUser, users, preferences) {
   var sortedUsers = [];
-
   var strava = void 0,
       nike = void 0,
       appleHealthKit = void 0,
@@ -311,20 +324,20 @@ function sortUsers(activeUser, users, preferences) {
         continue;
       }
       // Sort by gender
-      if (preferences.gender == "Female" || preferences.gender == "Male") {
-        if (user.gender !== preferences.gender) {
+
+      if (!(typeof user.gender === "undefined") && !(typeof activeUser.preferences.gender === "undefined")) {
+        var genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+
+        if (!genderPref.includes(user.gender.toLowerCase())) {
           continue;
-        }
-      };
+        };
+      }
 
       // If not in age range
       if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {
         console.log("not in age range");
         continue;
       }
-
-      console.log('should be true: ', "desiredGoals" in activeUser);
-      console.log('should be true data: ', "data" in activeUser);
 
       // Check which if any desired goals are the same
       if ('desiredGoals' in activeUser && 'desiredGoals' in user) {
@@ -337,7 +350,6 @@ function sortUsers(activeUser, users, preferences) {
             if (recommendationText == undefined) {
               recommendationText = 'You both want to ' + goal;
             }
-            console.log("added desired goal for", user);
           }
         }
       }
@@ -362,7 +374,7 @@ function sortUsers(activeUser, users, preferences) {
             if (recommendationText == undefined) {
               recommendationText = user.firstName + '\'s average run length is in your preferred range\'';
             }
-            console.log('added average run length for', user);
+            console.log('added average run length for', user.email);
           }
 
           /*
@@ -379,7 +391,7 @@ function sortUsers(activeUser, users, preferences) {
                   recommendationText = user.firstName + '\'s average run length is slightly below your preferred average run length range';
                 }
 
-                console.log('added average run length for', user);
+                console.log('added average run length for', user.email);
               } else {
                 lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength;
                 userPoints += 10 + 1.5 * user.data.averageRunLength;
@@ -472,8 +484,9 @@ function sortUsers(activeUser, users, preferences) {
     var limitedUsersIndex = sortedUsersIndexes.slice(0, maxUsers);
     var sortedLimitedUsers = [];
     for (var i in limitedUsersIndex) {
-      var _index = limitedUsersIndex[i];
-      sortedLimitedUsers.push(sortedUsers[parseInt(_index)]);
+      var _index = Number(limitedUsersIndex[i]);
+      sortedLimitedUsers.push(sortedUsers[_index]);
+      console.log(sortedUsers[_index].user.email, sortedUsers[_index].matchReason, sortedUsers[_index].score);
     }
     fulfill(sortedLimitedUsers);
   });
@@ -485,13 +498,12 @@ function sortUsers(activeUser, users, preferences) {
 */
 
 var getUser = exports.getUser = function getUser(req, res) {
-  var email = req.body.email;
-  // console.log("email: " + email);
+  var email = req.query.email;
+  console.log('in get user');
+
   _user2.default.findOne({ "email": email }).then(function (user) {
-    // console.log("FOUND USER:")
-    // console.log(user)
-    // console.log("---------")
     res.json(user);
+    console.log('this is user ', user);
   }).catch(function (error) {
     console.log(error, 'find one ERROR');
     res.json({ error: error });

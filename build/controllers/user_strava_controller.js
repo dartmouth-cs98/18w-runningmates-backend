@@ -64,12 +64,12 @@ function getStravaAthlete(token, athlete, user) {
     _stravaV2.default.athlete.get({ access_token: token }, function (err, payload, limits) {
       if (!err) {
         var coords = [-147.349442, 64.751114];
-        var imgUrl = 'http://www.runguides.com/assets/running-icon.svg';
+        var imgUrl = payload.profile;
         var age = 21;
         var bio = 'I\'m on Strava!';
         var preferences = {
           gender: 'All',
-          pace: [0, 10],
+          runLength: [0, 10],
           age: [0, 100],
           proximity: 10000
         };
@@ -89,13 +89,20 @@ function getStravaAthlete(token, athlete, user) {
         user.gender = payload.sex;
         user.email = payload.email;
         // user.thirdPartyIds.push(payload.id);
-        user.username = payload.username;
         user.preferences = preferences;
         user.bio = bio;
         user.age = age;
         user.imageURL = imgUrl;
         user.location = coords;
-        user.thirdPartyIds.strava = payload.id;
+
+        if (!user.thirdPartyIds) {
+          user.thirdPartyIds = {
+            strava: payload.id
+          };
+        } else {
+          user.thirdPartyIds["strava"] = payload.id;
+        }
+        // user.thirdPartyIds["strava"] = payload.id;
         // console.log("XXXXXXXXX");
         // console.log(user);
         // console.log(athlete);
@@ -237,7 +244,7 @@ function getActivities(token, totalActivityCount, athlete) {
 
   return new Promise(function (fulfill, reject) {
     console.log('Get activities');
-    console.log(Array.from(Array(Math.floor(pages)).keys()));
+    // console.log(Array.from(Array(Math.floor(pages)).keys()));
     var promises = Array.from(Array(Math.floor(pages)).keys()).map(function (x) {
       return listActivities(token, x);
     });
@@ -300,7 +307,7 @@ var getData = exports.getData = function getData(req, res, next) {
       res.json(newObjects[0]);
       // save the user object to the database
       newObjects[0].save(function (err, newUser) {
-        if (err) return console.error(err);
+        if (err) return console.error("save error: ", err);
         // res.json(athlete);
       });
       getActivities(token, newtotalActivityCount, newObjects[1]).then(function (newerAthlete) {
@@ -340,17 +347,17 @@ function cleanSegments(athlete, newSegList) {
         var objIndex = listToAdd.findIndex(function (obj) {
           return obj.id == newSegList[index].id;
         });
-        console.log('Before update: ', listToAdd[objIndex]);
+        //console.log('Before update: ', listToAdd[objIndex]);
         listToAdd[objIndex].count += 1;
         if (newSegList[index].elapsedTime < listToAdd[objIndex].elapsedTime) {
           listToAdd[objIndex].elapsedTime = newSegList[index].elapsedTime;
           listToAdd[objIndex].komRank = newSegList[index].komRank;
         }
-        console.log('After update: ', listToAdd[objIndex]);
+        //console.log('After update: ', listToAdd[objIndex]);
       } else {
         listofIds.push(newSegList[index].id);
         listToAdd.push(value);
-        console.log('in the else');
+        //console.log('in the else');
         // console.log(listofIds);
       }
       // console.log(newSegList[index].id);
@@ -360,7 +367,7 @@ function cleanSegments(athlete, newSegList) {
     // console.log(listofIds);
 
     athlete.listSegments = listToAdd;
-    console.log(athlete.listSegments);
+    //console.log(athlete.listSegments);
     fufill(athlete);
   });
 }
@@ -402,8 +409,8 @@ function listSegments(token, id) {
 function getSegments(athlete, token) {
   console.log('\ngetting segments\n');
   // console.log(athlete);
-  console.log(athlete.listActivities.length);
-  console.log(Array.from(Array(athlete.listActivities.length).keys()));
+  //console.log(athlete.listActivities.length);
+  //console.log(Array.from(Array(athlete.listActivities.length).keys()));
   // console.log(athlete.listActivities[20].id);
   // listSegments(token, 173576701);
 
