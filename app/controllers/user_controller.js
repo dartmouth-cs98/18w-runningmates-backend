@@ -79,6 +79,8 @@ export const match = (req, res, next) => {
         // create a new Chat with both users in it
         const newChat = new Chat();
         newChat.members = [targetId, userId];
+        newChat.mostRecentMessage = "You matched!";
+        newChat.lastUpdated = Date.now();
         newChat.save().then(() => {
           console.log('saved new chat for match');
         }).catch((err) => {
@@ -487,6 +489,14 @@ function sortUsers(activeUser, users, preferences) {
           //
           //   }
           // }
+          // console.log("------MATCH REASON------")
+          // console.log(user);
+          // console.log(recommendationText);
+
+          if (recommendationText == undefined) {
+            recommendationText = "";
+          }
+
           sortedUsers.push({user: user, matchReason: recommendationText, score: userPoints});
 
 
