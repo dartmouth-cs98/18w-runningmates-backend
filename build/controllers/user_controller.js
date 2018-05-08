@@ -31,8 +31,6 @@ var maxUsers = 15;
 var match = exports.match = function match(req, res, next) {
   var targetId = req.body.targetId;
   var userId = req.body.userId;
-  console.log('targetId: ' + targetId);
-  console.log('userId: ' + userId);
 
   _user2.default.findOne({ _id: targetId }).then(function (found) {
     if (found) {
@@ -258,8 +256,7 @@ var updatePrefs = exports.updatePrefs = function updatePrefs(req, res, next) {
   _user2.default.findOne({ email: email }).then(function (found) {
     if (found) {
       var preferences = found.preferences;
-      console.log("found user with following preferences: ");
-      console.log(preferences);
+
       preferences.gender = gender;
       preferences.runLength = runLength;
       preferences.age = age;
@@ -312,8 +309,10 @@ function sortUsers(activeUser, users, preferences) {
       appleHealthKit === true;
     }
   }
+
   return new Promise(function (fulfill, reject) {
     for (var key in users) {
+      recommendationText = "";
       var user = users[key];
       var userPoints = 0;
       if (sortedUsers.length >= maxUsers) {
@@ -334,8 +333,7 @@ function sortUsers(activeUser, users, preferences) {
       }
 
       // If not in age range
-      if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {
-        console.log("not in age range");
+      if (activeUser.preferences.age[1] < user.age || activeUser.preferences.age[0] > user.age) {
         continue;
       }
 
@@ -343,12 +341,10 @@ function sortUsers(activeUser, users, preferences) {
       if ('desiredGoals' in activeUser && 'desiredGoals' in user) {
         for (var index in user.desiredGoals) {
           var goal = user.desiredGoals[index];
-          console.log(goal);
           if (activeUser.desiredGoals.includes(goal)) {
             userPoints += 10;
-
-            if (recommendationText == undefined) {
-              recommendationText = 'You both want to ' + goal;
+            if (recommendationText == "") {
+              recommendationText = 'You both are looking for ' + goal;
             }
           }
         }
@@ -362,7 +358,7 @@ function sortUsers(activeUser, users, preferences) {
         ------------------------------------
         */
 
-        if ('averageRunLength' in activeUser && 'averageRunLength' in user) {
+        if ('averageRunLength' in activeUser.data && 'averageRunLength' in user.data) {
 
           /*
           If potential match's average run length is in user pref range,
@@ -371,10 +367,9 @@ function sortUsers(activeUser, users, preferences) {
           if (user.data.averageRunLength >= activeUser.preferences.runLength[0] && user.data.averageRunLength <= activeUser.preferences.runLength[1]) {
             userPoints += 10;
 
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s average run length is in your preferred range\'';
             }
-            console.log('added average run length for', user.email);
           }
 
           /*
@@ -387,15 +382,13 @@ function sortUsers(activeUser, users, preferences) {
               if (user.data.averageRunLength < activeUser.preferences.runLength[0]) {
                 lengthDifference = activeUser.preferences.runLength[0] - user.data.averageRunLength;
                 userPoints += 10 - 3 * user.data.averageRunLength;
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = user.firstName + '\'s average run length is slightly below your preferred average run length range';
                 }
-
-                console.log('added average run length for', user.email);
               } else {
                 lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength;
                 userPoints += 10 + 1.5 * user.data.averageRunLength;
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = user.firstName + '\'s average run length is slightly above your preferred average run length range';
                 }
               }
@@ -409,19 +402,19 @@ function sortUsers(activeUser, users, preferences) {
 
           if (user.data.averageRunLength === activeUser.data.averageRunLength) {
             userPoints += 10;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s average run length is the same as your average run length';
             }
           } else if (user.data.averageRunLength < activeUser.data.averageRunLength) {
             var runningLengthDifference = activeUser.data.averageRunLength - user.data.averageRunLength;
             userPoints += 10 + 2 * runningLengthDifference;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s average run length is slightly below your average run length';
             }
           } else {
             var _runningLengthDifference = user.data.averageRunLength - activeUser.data.averageRunLength;
             userPoints += 10 - 2 * _runningLengthDifference;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s average run length is slightly above your average run length';
             }
           }
@@ -433,22 +426,22 @@ function sortUsers(activeUser, users, preferences) {
         ------------------------------------
         */
 
-        if ('runsPerWeek' in activeUser && 'runsPerWeek' in user) {
+        if ('runsPerWeek' in activeUser.data && 'runsPerWeek' in user.data) {
           if (user.data.runsPerWeek === activeUser.data.runsPerWeek) {
             userPoints += 10;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s runs per week is equal to your runs per week';
             }
           } else if (user.data.runsPerWeek < activeUser.data.runsPerWeek) {
             var runsCountDifference = activeUser.data.runsPerWeek - user.data.runsPerWeek;
             userPoints += 10 + 3 * runsCountDifference;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s runs per week is slightly below your runs per week';
             }
           } else {
             var _runsCountDifference = user.data.runsPerWeek - activeUser.data.runsPerWeek;
             userPoints += 10 - 3 * _runsCountDifference;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s runs per week is slightly above your runs per week';
             }
           }
@@ -485,9 +478,10 @@ function sortUsers(activeUser, users, preferences) {
     var sortedLimitedUsers = [];
     for (var i in limitedUsersIndex) {
       var _index = Number(limitedUsersIndex[i]);
+      console.log(limitedUsersIndex[i]);
       sortedLimitedUsers.push(sortedUsers[_index]);
-      console.log(sortedUsers[_index].user.email, sortedUsers[_index].matchReason, sortedUsers[_index].score);
     }
+    console.log(sortedLimitedUsers);
     fulfill(sortedLimitedUsers);
   });
 }
@@ -499,13 +493,10 @@ function sortUsers(activeUser, users, preferences) {
 
 var getUser = exports.getUser = function getUser(req, res) {
   var email = req.query.email;
-  console.log('in get user');
 
   _user2.default.findOne({ "email": email }).then(function (user) {
     res.json(user);
-    console.log('this is user ', user);
   }).catch(function (error) {
-    console.log(error, 'find one ERROR');
     res.json({ error: error });
   });
 };
@@ -529,22 +520,18 @@ var getUsers = exports.getUsers = function getUsers(req, res) {
         sortUsers(user, users, preferences).then(function (sortedUsers) {
           res.json(sortedUsers);
         }).catch(function (error) {
-          console.log('sorting error: ', error);
           res.json(error);
         });
         // res.json(users);
       }).catch(function (error) {
-        console.log(error, 'query ');
         res.json({ error: error });
       });
 
       // user.Update({'location': })
     }).catch(function (error) {
-      console.log(error, 'find one ERROR');
       res.json({ error: error });
     });
   } else {
-    console.log("user does not exist");
     res.json("user does not exist");
   }
 };
