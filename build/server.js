@@ -86,7 +86,7 @@ io.on('connection', function (socket) {
 
   socket.on('login', function (userInfo) {
     // need to check if user is signed in on another device already
-    console.log("login socket");
+    console.log('login socket');
     userDictionary[userInfo] = socket.id;
     console.log(userDictionary);
   });
@@ -99,7 +99,7 @@ io.on('connection', function (socket) {
   // join a room identified by the chat ID
   // code related to joining rooms developed with help from: https://gist.github.com/crtr0/2896891
   socket.on('join room', function (chatID) {
-    console.log("joining room " + chatID);
+    console.log('joining room ' + chatID);
 
     // leave room user was previously in
     if (socket.room) {
@@ -116,11 +116,12 @@ io.on('connection', function (socket) {
     var socketid = userDictionary[recipient];
 
     io.sockets.in(room).emit('chat message', msg);
-
+    console.log('SOCKET ID: ' + socketid);
+    console.log(io.sockets.connected);
     chatActions.saveNewMessage(msg, function () {
       // https://stackoverflow.com/questions/24041220/sending-message-to-a-specific-id-in-socket-io-1-0
       if (io.sockets.connected[socketid]) {
-        console.log("socket " + socketid + "is connected");
+        console.log('socket ' + socketid + 'is connected');
         io.sockets.connected[socketid].emit('message', 'hey, you got a message!');
       }
     });

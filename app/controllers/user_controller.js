@@ -12,8 +12,6 @@ const maxUsers = 15;
 export const match = (req, res, next) => {
   const targetId = req.body.targetId;
   const userId = req.body.userId;
-  console.log(`targetId: ${targetId}`);
-  console.log(`userId: ${userId}`);
 
   User.findOne({ _id: targetId })
   .then((found) => {
@@ -262,8 +260,7 @@ export const updatePrefs = (req, res, next) => {
   .then((found) => {
     if (found) {
       let preferences = found.preferences;
-      console.log("found user with following preferences: ");
-      console.log(preferences);
+
       preferences.gender = gender;
       preferences.runLength = runLength;
       preferences.age = age;
@@ -321,8 +318,10 @@ function sortUsers(activeUser, users, preferences) {
       appleHealthKit === true;
     }
   }
+
   return new Promise((fulfill, reject) => {
       for (let key in users) {
+          recommendationText = ""
           let user = users[key];
           let userPoints = 0;
           if (sortedUsers.length >= maxUsers) {
@@ -345,7 +344,6 @@ function sortUsers(activeUser, users, preferences) {
 
           // If not in age range
           if ((activeUser.preferences.age[1] < user.age) || (activeUser.preferences.age[0] > user.age)) {
-              console.log("not in age range");
               continue;
             }
 
@@ -355,9 +353,8 @@ function sortUsers(activeUser, users, preferences) {
               let goal = user.desiredGoals[index];
               if (activeUser.desiredGoals.includes(goal)){
                 userPoints += 10;
-
-                if (recommendationText == undefined) {
-                  recommendationText = `You both want to ${goal}`;
+                if (recommendationText == "") {
+                  recommendationText = `You both are looking for ${goal}`;
                 }
               }
             }
@@ -371,7 +368,7 @@ function sortUsers(activeUser, users, preferences) {
             ------------------------------------
             */
 
-            if (('averageRunLength' in activeUser) && ('averageRunLength' in user)) {
+            if (('averageRunLength' in activeUser.data) && ('averageRunLength' in user.data)) {
 
               /*
               If potential match's average run length is in user pref range,
@@ -380,10 +377,9 @@ function sortUsers(activeUser, users, preferences) {
               if ((user.data.averageRunLength >= activeUser.preferences.runLength[0]) && (user.data.averageRunLength <= activeUser.preferences.runLength[1])) {
                 userPoints += 10;
 
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = `${user.firstName}'s average run length is in your preferred range'`;
                 }
-                console.log('added average run length for', user.email);
 
               }
 
@@ -397,18 +393,16 @@ function sortUsers(activeUser, users, preferences) {
                 if ((user.data.averageRunLength < activeUser.preferences.runLength[0])) {
                   lengthDifference = activeUser.preferences.runLength[0] - user.data.averageRunLength
                   userPoints += (10 - (3 * user.data.averageRunLength));
-                  if (recommendationText == undefined) {
+                  if (recommendationText == "") {
                     recommendationText = `${user.firstName}'s average run length is slightly below your preferred average run length range`;
                   }
-
-                  console.log('added average run length for', user.email);
 
                 }
 
                 else {
                   lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength
                   userPoints += (10 + (1.5 * user.data.averageRunLength));
-                  if (recommendationText == undefined) {
+                  if (recommendationText == "") {
                     recommendationText = `${user.firstName}'s average run length is slightly above your preferred average run length range`;
                   }
 
@@ -423,21 +417,21 @@ function sortUsers(activeUser, users, preferences) {
 
               if (user.data.averageRunLength === activeUser.data.averageRunLength){
                 userPoints += 10;
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = `${user.firstName}'s average run length is the same as your average run length`;
                 }
               }
               else if  (user.data.averageRunLength < activeUser.data.averageRunLength){
                 let runningLengthDifference = activeUser.data.averageRunLength - user.data.averageRunLength
                 userPoints += (10 + (2 * runningLengthDifference));
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = `${user.firstName}'s average run length is slightly below your average run length`;
                 }
               }
               else {
                 let runningLengthDifference = user.data.averageRunLength - activeUser.data.averageRunLength
                 userPoints += (10 - (2 * runningLengthDifference));
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = `${user.firstName}'s average run length is slightly above your average run length`;
                 }
               }
@@ -450,24 +444,24 @@ function sortUsers(activeUser, users, preferences) {
             ------------------------------------
             */
 
-            if (('runsPerWeek' in activeUser) && ('runsPerWeek' in user)) {
+            if (('runsPerWeek' in activeUser.data) && ('runsPerWeek' in user.data)) {
               if (user.data.runsPerWeek === activeUser.data.runsPerWeek){
                 userPoints += 10;
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = `${user.firstName}'s runs per week is equal to your runs per week`;
                 }
               }
               else if  (user.data.runsPerWeek < activeUser.data.runsPerWeek){
                 let runsCountDifference = activeUser.data.runsPerWeek - user.data.runsPerWeek
                 userPoints += (10 + (3 * runsCountDifference));
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = `${user.firstName}'s runs per week is slightly below your runs per week`;
                 }
               }
               else {
                 let runsCountDifference = user.data.runsPerWeek - activeUser.data.runsPerWeek
                 userPoints += (10 - (3 * runsCountDifference));
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = `${user.firstName}'s runs per week is slightly above your runs per week`;
                 }
               }
@@ -513,8 +507,8 @@ function sortUsers(activeUser, users, preferences) {
       let sortedLimitedUsers = [];
       for (let i in limitedUsersIndex){
         let index = Number(limitedUsersIndex[i]);
+        console.log(limitedUsersIndex[i])
         sortedLimitedUsers.push(sortedUsers[index]);
-        console.log(sortedUsers[index].user.email, sortedUsers[index].matchReason, sortedUsers[index].score );
       }
       fulfill(sortedLimitedUsers);
 
@@ -528,15 +522,12 @@ function sortUsers(activeUser, users, preferences) {
 
 export const getUser = (req, res) => {
   const email = req.query.email;
-  console.log('in get user');
 
   User.findOne({"email": email})
   .then((user) => {
     res.json(user);
-    console.log('this is user ', user);
   })
   .catch((error) => {
-    console.log(error, 'find one ERROR');
     res.json({ error });
   });
 
@@ -567,24 +558,20 @@ export const getUsers = (req, res) => {
           res.json(sortedUsers);
         })
         .catch((error) => {
-          console.log('sorting error: ', error);
           res.json(error);
         })
         // res.json(users);
       })
       .catch((error) => {
-        console.log(error, 'query ');
         res.json({ error });
       });
 
       // user.Update({'location': })
     })
     .catch((error) => {
-      console.log(error, 'find one ERROR');
       res.json({ error });
     });
   } else {
-    console.log("user does not exist");
     res.json("user does not exist");
   }
 };
