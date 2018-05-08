@@ -500,7 +500,6 @@ function sortUsers(activeUser, users, preferences) {
         console.log(limitedUsersIndex[i])
         sortedLimitedUsers.push(sortedUsers[index]);
       }
-      console.log(sortedLimitedUsers);
       fulfill(sortedLimitedUsers);
 
 });
