@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as Users from './controllers/user_controller';
 import * as UserStrava from './controllers/user_strava_controller';
 import * as Chat from './controllers/chat_controller';
-import { requireSignin } from './services/passport';
+import { requireAuth, requireSignin } from './services/passport';
 import signS3 from './services/s3';
 
 const router = Router();
@@ -18,6 +18,9 @@ router.route('/signin')
 router.route('/signup')
   .post(Users.signup);
 
+router.route('/signout')
+  .post(requireAuth, Users.signout);
+
 // router.get('/stravaAuthenticate', UserStrava.getStravaRedirect);
 // router.get('/stravaSignUp', UserStrava.getStravaToken);
 router.route('/stravaSignUp')
@@ -27,8 +30,8 @@ router.route('/sign-s3')
   .get(signS3);
 
 router.route('/users/:email')
-  .get(Users.getUser) // Get User
-  .post(Users.updateUser); // Update User
+  .get(requireAuth, Users.getUser) // Get User
+  .post(requireAuth, Users.updateUser); // Update User
 
 router.route('/user/:email')
   .get(Users.getUser)

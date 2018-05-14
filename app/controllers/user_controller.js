@@ -173,6 +173,10 @@ export const signup = (req, res, next) => {
   });
 };
 
+export const signout = (req, res, next) => {
+  req.logout();
+}
+
 export const updateUser = (req, res, next) => {
   let update = {};
   const email = req.body.email;
@@ -521,7 +525,7 @@ function sortUsers(activeUser, users, preferences) {
 */
 
 export const getUser = (req, res) => {
-  const email = req.query.email;
+  const email = req.user.email;
 
   User.findOne({"email": email})
   .then((user) => {
@@ -537,7 +541,8 @@ export const getUser = (req, res) => {
 export const getUsers = (req, res) => {
 
   if (('location' in req.query) && ('email' in req.query)) {
-    let email = req.query.email;
+    // let email = req.query.email;
+    let email = req.user.email;
     let location = req.query.location;
     User.findOne({'email': email})
     .then((user) => {
