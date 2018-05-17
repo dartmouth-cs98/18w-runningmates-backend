@@ -30,7 +30,7 @@ router.route('/sign-s3')
   .get(signS3);
 
 router.route('/users/:email')
-  .get(requireAuth, Users.getUser) // Get User
+  .get(Users.getUser) // Get User
   .post(requireAuth, Users.updateUser); // Update User
 
 router.route('/user/:email')
@@ -38,7 +38,7 @@ router.route('/user/:email')
   .post(Users.profileUpdate);
 
 router.route('/users')
-  .get(Users.getUsers); // Get Users
+  .get(requireAuth, Users.getUsers); // Get Users
 router.route('/prefs')
   .post(Users.updatePrefs);
 router.route('/match')
