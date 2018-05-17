@@ -173,9 +173,14 @@ export const signup = (req, res, next) => {
   });
 };
 
+export const signout = (req, res, next) => {
+  req.logout();
+}
+
 export const updateUser = (req, res, next) => {
   let update = {};
-  const email = req.body.email;
+  // const email = req.body.email;
+  const email = req.user.email;
 
   for (let key in req.body) {
     update[key] = req.body[key];
@@ -536,9 +541,12 @@ export const getUser = (req, res) => {
 
 export const getUsers = (req, res) => {
 
-  if (('location' in req.query) && ('email' in req.query)) {
-    let email = req.query.email;
-    let location = req.query.location;
+  // if (('location' in req.query) && ('email' in req.query)) {
+    // let email = req.query.email;
+    // let location = req.query.location;
+    let email = req.user.email;
+    let location = req.user.location;
+
     User.findOne({'email': email})
     .then((user) => {
       // console.log('USER IN GETUSERS: ', user);
@@ -571,9 +579,9 @@ export const getUsers = (req, res) => {
     .catch((error) => {
       res.json({ error });
     });
-  } else {
-    res.json("user does not exist");
-  }
+  // } else {
+  //   res.json("user does not exist");
+  // }
 };
 
 export const getProfile = (req, res) => {
