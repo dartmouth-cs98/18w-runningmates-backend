@@ -178,9 +178,14 @@ export const signout = (req, res, next) => {
 }
 
 export const updateUser = (req, res, next) => {
+  console.log("in updateUser");
+
   let update = {};
   // const email = req.body.email;
   const email = req.user.email;
+  if (email != req.params.email) {
+    return res.status(401).send("Unauthorized");
+  }
 
   for (let key in req.body) {
     update[key] = req.body[key];
@@ -203,7 +208,8 @@ export const updateUser = (req, res, next) => {
 }
 
 export const profileUpdate = (req, res, next) => {
-  const email = req.body.email;
+  const email = req.user.email;
+
   const firstName = req.body.firstName;
   //const imageURL = req.body.imageURL;
   const bio = req.body.bio;
