@@ -33,14 +33,11 @@ router.route('/users/:email')
   .get(Users.getUser) // Get User
   .post(requireAuth, Users.updateUser); // Update User
 
-router.route('/user/:email')
-  .get(Users.getUser)
-  .post(Users.profileUpdate);
 
 router.route('/users')
   .get(requireAuth, Users.getUsers); // Get Users
-router.route('/prefs')
-  .post(Users.updatePrefs);
+// router.route('/prefs')
+//   .post(requireAuth, Users.updatePrefs);
 router.route('/match')
   .post(Users.match);
 router.route('/chatHistory')
