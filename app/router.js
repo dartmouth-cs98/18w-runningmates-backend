@@ -36,8 +36,8 @@ router.route('/users/:email')
 
 router.route('/users')
   .get(requireAuth, Users.getUsers); // Get Users
-router.route('/prefs')
-  .post(Users.updatePrefs);
+// router.route('/prefs')
+//   .post(requireAuth, Users.updatePrefs);
 router.route('/match')
   .post(Users.match);
 router.route('/chatHistory')

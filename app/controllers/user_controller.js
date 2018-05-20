@@ -178,7 +178,6 @@ export const signout = (req, res, next) => {
 }
 
 export const updateUser = (req, res, next) => {
-  console.log("in updateUser");
 
   let update = {};
   // const email = req.body.email;
@@ -261,7 +260,10 @@ export const profileUpdate = (req, res, next) => {
 
 
 export const updatePrefs = (req, res, next) => {
-  const email = req.body.email;
+  console.log("in updatePrefs");
+
+  const email = req.user.email;
+  
   const gender = req.body.gender;
   const runLength = req.body.runLength;
   const age = req.body.age;
