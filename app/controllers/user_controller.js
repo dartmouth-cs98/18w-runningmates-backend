@@ -176,7 +176,9 @@ export const signup = (req, res, next) => {
 };
 
 export const signout = (req, res, next) => {
+  console.log("signing out");
   req.logout();
+  res.json("Success signing out");
 }
 
 export const updateUser = (req, res, next) => {
