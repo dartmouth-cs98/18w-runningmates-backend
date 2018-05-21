@@ -11,14 +11,15 @@ const maxUsers = 15;
 
 export const match = (req, res, next) => {
   const targetId = req.body.targetId;
-  const userId = req.body.userId;
+  const userId = req.user._id.toString();
 
   User.findOne({ _id: targetId })
   .then((found) => {
     if (found) {
-      console.log(found);
+      // console.log(found);
       // if its a match
       if (found.potentialMates.includes(userId)) {
+        console.log("we matched!!!!");
         res.send({ response: 'match' });
         // updated current active user
         User.findOne({ _id: userId })
@@ -86,6 +87,7 @@ export const match = (req, res, next) => {
           console.log(err);
         });
       } else {
+        console.log("we didn't match yet!!");
         res.send({ response: 'no' });
 
         // update active user
@@ -263,7 +265,7 @@ export const updatePrefs = (req, res, next) => {
   console.log("in updatePrefs");
 
   const email = req.user.email;
-  
+
   const gender = req.body.gender;
   const runLength = req.body.runLength;
   const age = req.body.age;
@@ -520,7 +522,7 @@ function sortUsers(activeUser, users, preferences) {
       let sortedLimitedUsers = [];
       for (let i in limitedUsersIndex){
         let index = Number(limitedUsersIndex[i]);
-        console.log(limitedUsersIndex[i])
+        // console.log(limitedUsersIndex[i])
         sortedLimitedUsers.push(sortedUsers[index]);
       }
       fulfill(sortedLimitedUsers);
