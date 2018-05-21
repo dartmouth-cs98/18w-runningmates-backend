@@ -39,11 +39,11 @@ router.route('/users')
 // router.route('/prefs')
 //   .post(requireAuth, Users.updatePrefs);
 router.route('/match')
-  .post(Users.match);
+  .post(requireAuth, Users.match);
 router.route('/chatHistory')
-  .get(Chat.getChatHistory);
+  .get(requireAuth, Chat.getChatHistory);
 router.route('/chats')
-  .get(Chat.getChatsList);
+  .get(requireAuth, Chat.getChatsList);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 

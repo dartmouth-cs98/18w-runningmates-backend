@@ -76,7 +76,8 @@ export const saveNewMessage = (msg, cb) => {
 
 export const getChatsList = (req, res) => {
 
-  let userID = req.query.user;
+  let userID = req.user._id.toString();
+  console.log("getting chats for " + userID);
 
   if (userID) {
     Chat.find({members: userID}).then((chats) => {
@@ -110,13 +111,17 @@ export const getChatsList = (req, res) => {
           }
           Promise.all(innerPromiseArray).then((recipients) => {
             let names = [];
+            let ids = [];
 
             for (let i = 0; i < recipients.length; i++) {
               let name = recipients[i].firstName + " " + recipients[i].lastName;
+              let id = recipients[i].id;
               names.push(name);
+              ids.push(id);
             }
 
             currentChat.recipients = names;
+            currentChat.recipientIDs = ids;
             if (recipients.length > 0) {
               currentChat.imageURL = recipients[0].imageURL
             }
@@ -145,8 +150,8 @@ export const getChatsList = (req, res) => {
           }
         }
 
-        console.log("------BEFORE SENDING-----");
-        console.log(sortedChats);
+        // console.log("------BEFORE SENDING-----");
+        // console.log(sortedChats);
         res.send(sortedChats);
       });
     }).catch((err) => {
@@ -164,9 +169,16 @@ export const getChatsList = (req, res) => {
 export const getChatHistory = (req, res, next) => {
   const chatID = req.query.chatID;
   const pageNumber = req.query.pageNumber;
+  let userID = req.user._id.toString();
+  console.log("fetching chats for: " + userID);
 
   Chat.findOne({ _id: chatID }).then((result) => {
     if (result) {
+
+      if (!result.members.includes(userID)) {
+        return res.status(401).send("Unauthorized");
+      }
+
       const messageIDs = result.messages;
       const promisesArray = [];
 
@@ -214,6 +226,7 @@ export const getChatHistory = (req, res, next) => {
       });
     } else {
       console.log(`couldn't find chat with ID ${chatID}`);
+      return res.send("Error fetching chats");
     }
   }).catch((err) => {
     console.log(`error finding chat: ${err}`);
