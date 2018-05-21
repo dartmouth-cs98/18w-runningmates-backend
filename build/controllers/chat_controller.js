@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getChatHistory = exports.getChatsList = exports.saveNewMessage = undefined;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _chats = require('../models/chats');
 
 var _chats2 = _interopRequireDefault(_chats);
@@ -100,7 +102,8 @@ var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg, cb) {
 
 var getChatsList = exports.getChatsList = function getChatsList(req, res) {
 
-  var userID = req.query.user;
+  var userID = req.user._id.toString();
+  console.log("getting chats for " + userID);
 
   if (userID) {
     _chats2.default.find({ members: userID }).then(function (chats) {
@@ -138,13 +141,17 @@ var getChatsList = exports.getChatsList = function getChatsList(req, res) {
           }
           Promise.all(innerPromiseArray).then(function (recipients) {
             var names = [];
+            var ids = [];
 
             for (var _i = 0; _i < recipients.length; _i++) {
               var name = recipients[_i].firstName + " " + recipients[_i].lastName;
+              var id = recipients[_i].id;
               names.push(name);
+              ids.push(id);
             }
 
             currentChat.recipients = names;
+            currentChat.recipientIDs = ids;
             if (recipients.length > 0) {
               currentChat.imageURL = recipients[0].imageURL;
             }
@@ -177,8 +184,8 @@ var getChatsList = exports.getChatsList = function getChatsList(req, res) {
           }
         }
 
-        console.log("------BEFORE SENDING-----");
-        console.log(sortedChats);
+        // console.log("------BEFORE SENDING-----");
+        // console.log(sortedChats);
         res.send(sortedChats);
       });
     }).catch(function (err) {
@@ -194,10 +201,19 @@ var getChatsList = exports.getChatsList = function getChatsList(req, res) {
 var getChatHistory = exports.getChatHistory = function getChatHistory(req, res, next) {
   var chatID = req.query.chatID;
   var pageNumber = req.query.pageNumber;
+  var userID = req.user._id.toString();
+  console.log("fetching chats for: " + userID);
 
   _chats2.default.findOne({ _id: chatID }).then(function (result) {
     if (result) {
-      (function () {
+      var _ret3 = function () {
+
+        if (!result.members.includes(userID)) {
+          return {
+            v: res.status(401).send("Unauthorized")
+          };
+        }
+
         var messageIDs = result.messages;
         var promisesArray = [];
 
@@ -248,9 +264,12 @@ var getChatHistory = exports.getChatHistory = function getChatHistory(req, res, 
           console.log('error resolving promise array');
           console.log(err);
         });
-      })();
+      }();
+
+      if ((typeof _ret3 === 'undefined' ? 'undefined' : _typeof(_ret3)) === "object") return _ret3.v;
     } else {
       console.log('couldn\'t find chat with ID ' + chatID);
+      return res.send("Error fetching chats");
     }
   }).catch(function (err) {
     console.log('error finding chat: ' + err);

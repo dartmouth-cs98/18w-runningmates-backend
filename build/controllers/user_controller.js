@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getProfile = exports.getUsers = exports.getUser = exports.updatePrefs = exports.profileUpdate = exports.updateUser = exports.signup = exports.signin = exports.match = undefined;
+exports.getProfile = exports.getUsers = exports.getUser = exports.updatePrefs = exports.profileUpdate = exports.updateUser = exports.signout = exports.signup = exports.signin = exports.match = undefined;
 
 var _jwtSimple = require('jwt-simple');
 
@@ -30,13 +30,14 @@ var maxUsers = 15;
 
 var match = exports.match = function match(req, res, next) {
   var targetId = req.body.targetId;
-  var userId = req.body.userId;
+  var userId = req.user._id.toString();
 
   _user2.default.findOne({ _id: targetId }).then(function (found) {
     if (found) {
-      console.log(found);
+      // console.log(found);
       // if its a match
       if (found.potentialMates.includes(userId)) {
+        console.log("we matched!!!!");
         res.send({ response: 'match' });
         // updated current active user
         _user2.default.findOne({ _id: userId }).then(function (foundActive) {
@@ -91,6 +92,8 @@ var match = exports.match = function match(req, res, next) {
         // create a new Chat with both users in it
         var newChat = new _chats2.default();
         newChat.members = [targetId, userId];
+        newChat.mostRecentMessage = "You matched!";
+        newChat.lastUpdated = Date.now();
         newChat.save().then(function () {
           console.log('saved new chat for match');
         }).catch(function (err) {
@@ -98,6 +101,7 @@ var match = exports.match = function match(req, res, next) {
           console.log(err);
         });
       } else {
+        console.log("we didn't match yet!!");
         res.send({ response: 'no' });
 
         // update active user
@@ -162,7 +166,7 @@ var signup = exports.signup = function signup(req, res, next) {
       // user.location = {"coordinates": coords};
 
       user.save().then(function (result) {
-        res.send({ token: tokenForUser(result) });
+        res.send({ token: tokenForUser(result), user: result });
       }).catch(function (error) {
         console.log(error);
         res.status(420).send('Error saving user');
@@ -176,9 +180,18 @@ var signup = exports.signup = function signup(req, res, next) {
   });
 };
 
+var signout = exports.signout = function signout(req, res, next) {
+  req.logout();
+};
+
 var updateUser = exports.updateUser = function updateUser(req, res, next) {
+
   var update = {};
-  var email = req.body.email;
+  // const email = req.body.email;
+  var email = req.user.email;
+  if (email != req.params.email) {
+    return res.status(401).send("Unauthorized");
+  }
 
   for (var key in req.body) {
     update[key] = req.body[key];
@@ -200,7 +213,8 @@ var updateUser = exports.updateUser = function updateUser(req, res, next) {
 };
 
 var profileUpdate = exports.profileUpdate = function profileUpdate(req, res, next) {
-  var email = req.body.email;
+  var email = req.user.email;
+
   var firstName = req.body.firstName;
   //const imageURL = req.body.imageURL;
   var bio = req.body.bio;
@@ -247,7 +261,10 @@ var profileUpdate = exports.profileUpdate = function profileUpdate(req, res, nex
 };
 
 var updatePrefs = exports.updatePrefs = function updatePrefs(req, res, next) {
-  var email = req.body.email;
+  console.log("in updatePrefs");
+
+  var email = req.user.email;
+
   var gender = req.body.gender;
   var runLength = req.body.runLength;
   var age = req.body.age;
@@ -462,6 +479,14 @@ function sortUsers(activeUser, users, preferences) {
       //
       //   }
       // }
+      // console.log("------MATCH REASON------")
+      // console.log(user);
+      // console.log(recommendationText);
+
+      if (recommendationText == undefined) {
+        recommendationText = "";
+      }
+
       sortedUsers.push({ user: user, matchReason: recommendationText, score: userPoints });
     };
 
@@ -478,10 +503,9 @@ function sortUsers(activeUser, users, preferences) {
     var sortedLimitedUsers = [];
     for (var i in limitedUsersIndex) {
       var _index = Number(limitedUsersIndex[i]);
-      console.log(limitedUsersIndex[i]);
+      // console.log(limitedUsersIndex[i])
       sortedLimitedUsers.push(sortedUsers[_index]);
     }
-    console.log(sortedLimitedUsers);
     fulfill(sortedLimitedUsers);
   });
 }
@@ -503,37 +527,40 @@ var getUser = exports.getUser = function getUser(req, res) {
 
 var getUsers = exports.getUsers = function getUsers(req, res) {
 
-  if ('location' in req.query && 'email' in req.query) {
-    var email = req.query.email;
-    var location = req.query.location;
-    _user2.default.findOne({ 'email': email }).then(function (user) {
-      // console.log('USER IN GETUSERS: ', user);
-      var preferences = user.preferences;
+  // if (('location' in req.query) && ('email' in req.query)) {
+  // let email = req.query.email;
+  // let location = req.query.location;
+  var email = req.user.email;
+  var location = req.user.location;
 
-      // IN METERS
-      var maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
-      // location needs to be an array of floats [<long>, <lat>]
-      var query = _user2.default.find();
-      query.where('location').near({ center: { type: 'Point', coordinates: location }, maxDistance: maxDistance, spherical: true }).then(function (users) {
-        // DO SOMETHING WITH LIST OF NEARBY USERS
-        // Users Limited by MaxUsers
-        sortUsers(user, users, preferences).then(function (sortedUsers) {
-          res.json(sortedUsers);
-        }).catch(function (error) {
-          res.json(error);
-        });
-        // res.json(users);
+  _user2.default.findOne({ 'email': email }).then(function (user) {
+    // console.log('USER IN GETUSERS: ', user);
+    var preferences = user.preferences;
+
+    // IN METERS
+    var maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
+    // location needs to be an array of floats [<long>, <lat>]
+    var query = _user2.default.find();
+    query.where('location').near({ center: { type: 'Point', coordinates: location }, maxDistance: maxDistance, spherical: true }).then(function (users) {
+      // DO SOMETHING WITH LIST OF NEARBY USERS
+      // Users Limited by MaxUsers
+      sortUsers(user, users, preferences).then(function (sortedUsers) {
+        res.json(sortedUsers);
       }).catch(function (error) {
-        res.json({ error: error });
+        res.json(error);
       });
-
-      // user.Update({'location': })
+      // res.json(users);
     }).catch(function (error) {
       res.json({ error: error });
     });
-  } else {
-    res.json("user does not exist");
-  }
+
+    // user.Update({'location': })
+  }).catch(function (error) {
+    res.json({ error: error });
+  });
+  // } else {
+  //   res.json("user does not exist");
+  // }
 };
 
 var getProfile = exports.getProfile = function getProfile(req, res) {};
