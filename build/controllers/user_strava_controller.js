@@ -64,12 +64,12 @@ function getStravaAthlete(token, athlete, user) {
     _stravaV2.default.athlete.get({ access_token: token }, function (err, payload, limits) {
       if (!err) {
         var coords = [-147.349442, 64.751114];
-        var imgUrl = 'http://www.runguides.com/assets/running-icon.svg';
+        var imgUrl = payload.profile;
         var age = 21;
         var bio = 'I\'m on Strava!';
         var preferences = {
           gender: 'All',
-          pace: [0, 10],
+          runLength: [0, 10],
           age: [0, 100],
           proximity: 10000
         };
@@ -83,19 +83,32 @@ function getStravaAthlete(token, athlete, user) {
         athlete.sex = payload.sex;
         athlete.firstName = payload.firstname;
         athlete.lastName = payload.lastname;
+        var createDate = new Date(payload.created_at);
+        athlete.createDate = createDate;
+        var currentDate = new Date();
+        var timeDiff = Math.abs(currentDate.getTime() - createDate.getTime());
+        var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        athlete.diffDays = diffDays;
 
         user.firstName = payload.firstname;
         user.lastName = payload.lastname;
         user.gender = payload.sex;
         user.email = payload.email;
         // user.thirdPartyIds.push(payload.id);
-        user.username = payload.username;
         user.preferences = preferences;
         user.bio = bio;
         user.age = age;
         user.imageURL = imgUrl;
         user.location = coords;
-        user.thirdPartyIds.strava = payload.id;
+
+        if (!user.thirdPartyIds) {
+          user.thirdPartyIds = {
+            strava: payload.id
+          };
+        } else {
+          user.thirdPartyIds["strava"] = payload.id;
+        }
+        // user.thirdPartyIds["strava"] = payload.id;
         // console.log("XXXXXXXXX");
         // console.log(user);
         // console.log(athlete);
@@ -158,6 +171,46 @@ function getStravaStats(token, totalActivityCount, objects) {
         // user data update
         objects[0].data.totalMilesRun = payload.all_run_totals.distance * 0.000621371;
         objects[0].data.totalElevationClimbed = payload.all_run_totals.elevation_gain;
+
+        console.log("Weeks on the service: ");
+        console.log(objects[1].diffDays / 7);
+
+        console.log("total runs: ");
+        console.log(payload.all_run_totals.count);
+        console.log("total miles: ");
+        console.log(payload.all_run_totals.distance);
+        // runs per week
+        var totalRunsPerWeek = payload.all_run_totals.count / objects[1].diffDays / 7;
+        var recentRunsPerWeek = payload.recent_run_totals.count / 4;
+        if (totalRunsPerWeek > recentRunsPerWeek) {
+          objects[0].data.runsPerWeek = totalRunsPerWeek;
+        } else {
+          objects[0].data.runsPerWeek = recentRunsPerWeek;
+        }
+        console.log("runs Per week: ");
+        console.log(objects[0].data.runsPerWeek);
+
+        // miles per week 
+        var totalMilesPerWeek = objects[0].data.totalMilesRun / objects[1].diffDays / 7;
+        var recentMilesPerWeek = payload.recent_run_totals.distance / 4;
+        if (totalMilesPerWeek > recentMilesPerWeek) {
+          objects[0].data.milesPerWeek = totalMilesPerWeek;
+        } else {
+          objects[0].data.milesPerWeek = recentMilesPerWeek;
+        }
+        console.log("miles Per week: ");
+        console.log(objects[0].data.milesPerWeek);
+        // Average run length 
+        var totalAvgRun = 0;
+        if (payload.all_run_totals.count == "Nan") {
+          totalAvgRun = 0;
+        } else {
+          totalAvgRun = objects[0].data.totalMilesRun / payload.all_run_totals.count;
+        }
+
+        objects[0].data.averageRunLength = totalAvgRun;
+        console.log("average run length: ");
+        console.log(objects[0].data.averageRunLength);
         // runs per week and average run length
       } else {
         console.log('we getting errors mate');
@@ -211,11 +264,14 @@ function listActivities(token, page) {
         // console.log(payload);
         // console.log(aL.length);
         for (var j = 0; j < results.length; j += 1) {
+          // keeping only running activities 
           var activity = {
             id: payload[j].id,
             name: payload[j].name
           };
-          activities.push(activity);
+          if (payload[j].type == "Run") {
+            activities.push(activity);
+          }
         }
         fulfill(activities);
       } else {
@@ -237,7 +293,7 @@ function getActivities(token, totalActivityCount, athlete) {
 
   return new Promise(function (fulfill, reject) {
     console.log('Get activities');
-    console.log(Array.from(Array(Math.floor(pages)).keys()));
+    // console.log(Array.from(Array(Math.floor(pages)).keys()));
     var promises = Array.from(Array(Math.floor(pages)).keys()).map(function (x) {
       return listActivities(token, x);
     });
@@ -300,7 +356,7 @@ var getData = exports.getData = function getData(req, res, next) {
       res.json(newObjects[0]);
       // save the user object to the database
       newObjects[0].save(function (err, newUser) {
-        if (err) return console.error(err);
+        if (err) return console.error("save error: ", err);
         // res.json(athlete);
       });
       getActivities(token, newtotalActivityCount, newObjects[1]).then(function (newerAthlete) {
@@ -340,17 +396,17 @@ function cleanSegments(athlete, newSegList) {
         var objIndex = listToAdd.findIndex(function (obj) {
           return obj.id == newSegList[index].id;
         });
-        console.log('Before update: ', listToAdd[objIndex]);
+        //console.log('Before update: ', listToAdd[objIndex]);
         listToAdd[objIndex].count += 1;
         if (newSegList[index].elapsedTime < listToAdd[objIndex].elapsedTime) {
           listToAdd[objIndex].elapsedTime = newSegList[index].elapsedTime;
           listToAdd[objIndex].komRank = newSegList[index].komRank;
         }
-        console.log('After update: ', listToAdd[objIndex]);
+        //console.log('After update: ', listToAdd[objIndex]);
       } else {
         listofIds.push(newSegList[index].id);
         listToAdd.push(value);
-        console.log('in the else');
+        //console.log('in the else');
         // console.log(listofIds);
       }
       // console.log(newSegList[index].id);
@@ -360,7 +416,7 @@ function cleanSegments(athlete, newSegList) {
     // console.log(listofIds);
 
     athlete.listSegments = listToAdd;
-    console.log(athlete.listSegments);
+    //console.log(athlete.listSegments);
     fufill(athlete);
   });
 }
@@ -402,8 +458,8 @@ function listSegments(token, id) {
 function getSegments(athlete, token) {
   console.log('\ngetting segments\n');
   // console.log(athlete);
-  console.log(athlete.listActivities.length);
-  console.log(Array.from(Array(athlete.listActivities.length).keys()));
+  //console.log(athlete.listActivities.length);
+  //console.log(Array.from(Array(athlete.listActivities.length).keys()));
   // console.log(athlete.listActivities[20].id);
   // listSegments(token, 173576701);
 

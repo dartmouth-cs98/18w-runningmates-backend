@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getChatHistory = exports.getChatsList = exports.saveNewMessage = undefined;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _chats = require('../models/chats');
 
 var _chats2 = _interopRequireDefault(_chats);
@@ -19,18 +21,29 @@ var _user2 = _interopRequireDefault(_user);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function compareByDate(msg1, msg2) {
-  if (msg1.time < msg2.time) {
+// sorts in reverse order; newer messages sorted to end of array
+function compareMessagesByTime(msg1, msg2) {
+  if (msg1.time > msg2.time) {
     return 1;
   }
-  if (msg1.time > msg2.time) {
+  if (msg1.time < msg2.time) {
     return -1;
   }
   return 0;
 }
 
-var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg) {
-  var time = Date.Now;
+function compareChatsByTime(chat1, chat2) {
+  if (chat1.lastUpdated < chat2.lastUpdated) {
+    return 1;
+  }
+  if (chat1.lastUpdated > chat2.lastUpdated) {
+    return -1;
+  }
+  return 0;
+}
+
+var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg, cb) {
+  var time = Date.now();
   var message = msg.message;
   var sentBy = msg.sentBy;
   var chatID = msg.chatID;
@@ -46,15 +59,15 @@ var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg) {
     // create a new chat
     if (!chatID) {
       var newChat = (0, _chats2.default)();
-      newChat.members = [];
-      newChat.members.push(sentBy);
-      newChat.members.push(recipient);
+      newChat.members = [sentBy, recipient];
       newChat.messages = [];
       newChat.messages.push(result.id);
-      newChat.mostRecentMessage = result.id;
+      newChat.mostRecentMessage = message;
+      newChat.lastUpdated = time;
 
       newChat.save().then(function () {
         console.log('saved new chat successfully');
+        cb();
       }).catch(function (err) {
         console.log('error saving new chat: ' + err);
       });
@@ -65,9 +78,11 @@ var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg) {
           currentMessages.push(result.id);
           _chats2.default.update({ _id: chatID }, {
             messages: currentMessages,
-            mostRecentMessage: result.id
+            mostRecentMessage: message,
+            lastUpdated: time
           }).then(function () {
             console.log('updated chat successfully');
+            cb();
           }).catch(function (err) {
             console.log('error updating chat');
             console.log(err);
@@ -87,10 +102,11 @@ var saveNewMessage = exports.saveNewMessage = function saveNewMessage(msg) {
 
 var getChatsList = exports.getChatsList = function getChatsList(req, res) {
 
-  var userEmail = req.query.user;
+  var userID = req.user._id.toString();
+  console.log("getting chats for " + userID);
 
-  if (userEmail) {
-    _chats2.default.find({ members: userEmail }).then(function (chats) {
+  if (userID) {
+    _chats2.default.find({ members: userID }).then(function (chats) {
       // let chatsResponse = Object.assign({}, chats);
 
       var outerPromiseArray = [];
@@ -103,14 +119,14 @@ var getChatsList = exports.getChatsList = function getChatsList(req, res) {
 
         var outerPromise = new Promise(function (resl, rej) {
           var _loop2 = function _loop2(j) {
-            if (currentChat.members[j] != userEmail) {
+            if (currentChat.members[j] != userID) {
 
               var innerPromise = new Promise(function (resolve, reject) {
-                var name = "";
+                // let name = "";
 
-                _user2.default.findOne({ email: currentChat.members[j] }).then(function (user) {
-                  name += user.firstName + " " + user.lastName;
-                  resolve(name);
+                _user2.default.findOne({ _id: currentChat.members[j] }).then(function (user) {
+                  // name += user.firstName + " " + user.lastName;
+                  resolve(user);
                 }).catch(function (err) {
                   console.log("error finding user " + currentChat.members[j]);
                   reject(err);
@@ -124,7 +140,22 @@ var getChatsList = exports.getChatsList = function getChatsList(req, res) {
             _loop2(j);
           }
           Promise.all(innerPromiseArray).then(function (recipients) {
-            currentChat.recipients = recipients;
+            var names = [];
+            var ids = [];
+
+            for (var _i = 0; _i < recipients.length; _i++) {
+              var name = recipients[_i].firstName + " " + recipients[_i].lastName;
+              var id = recipients[_i].id;
+              names.push(name);
+              ids.push(id);
+            }
+
+            currentChat.recipients = names;
+            currentChat.recipientIDs = ids;
+            if (recipients.length > 0) {
+              currentChat.imageURL = recipients[0].imageURL;
+            }
+
             resl(currentChat);
           });
         });
@@ -135,7 +166,27 @@ var getChatsList = exports.getChatsList = function getChatsList(req, res) {
         _loop(i);
       }
       Promise.all(outerPromiseArray).then(function (chatsResponse) {
-        res.send(chatsResponse);
+        // sort by date/time here first before sending the response
+        var sortedChats = chatsResponse.sort(compareChatsByTime);
+
+        for (var i = 0; i < sortedChats.length; i++) {
+          var chatTime = new Date(sortedChats[i].lastUpdated);
+          var now = new Date();
+
+          var chatYear = chatTime.getFullYear();
+          var chatMonth = chatTime.getMonth();
+          var chatDay = chatTime.getDate();
+
+          if (chatDay != now.getDate() || chatMonth != now.getMonth() || chatYear != now.getFullYear()) {
+            sortedChats[i].lastUpdated = chatMonth + "/" + chatDay + "/" + chatYear;
+          } else {
+            sortedChats[i].lastUpdated = chatTime.getHours() + ":" + chatTime.getMinutes();
+          }
+        }
+
+        // console.log("------BEFORE SENDING-----");
+        // console.log(sortedChats);
+        res.send(sortedChats);
       });
     }).catch(function (err) {
       console.log("error fetching chats");
@@ -148,12 +199,21 @@ var getChatsList = exports.getChatsList = function getChatsList(req, res) {
 };
 
 var getChatHistory = exports.getChatHistory = function getChatHistory(req, res, next) {
-  var chatID = req.body.chatID;
-  var pageNumber = req.body.pageNumber;
+  var chatID = req.query.chatID;
+  var pageNumber = req.query.pageNumber;
+  var userID = req.user._id.toString();
+  console.log("fetching chats for: " + userID);
 
   _chats2.default.findOne({ _id: chatID }).then(function (result) {
     if (result) {
-      (function () {
+      var _ret3 = function () {
+
+        if (!result.members.includes(userID)) {
+          return {
+            v: res.status(401).send("Unauthorized")
+          };
+        }
+
         var messageIDs = result.messages;
         var promisesArray = [];
 
@@ -179,7 +239,7 @@ var getChatHistory = exports.getChatHistory = function getChatHistory(req, res, 
         Promise.all(promisesArray).then(function (messageObjects) {
           if (messageObjects) {
             // sort the messageObjects array
-            var sortedObjects = messageObjects.sort(compareByDate);
+            var sortedObjects = messageObjects.sort(compareMessagesByTime);
 
             // this if statement is not quite tested yet
             if (pageNumber) {
@@ -204,9 +264,12 @@ var getChatHistory = exports.getChatHistory = function getChatHistory(req, res, 
           console.log('error resolving promise array');
           console.log(err);
         });
-      })();
+      }();
+
+      if ((typeof _ret3 === 'undefined' ? 'undefined' : _typeof(_ret3)) === "object") return _ret3.v;
     } else {
       console.log('couldn\'t find chat with ID ' + chatID);
+      return res.send("Error fetching chats");
     }
   }).catch(function (err) {
     console.log('error finding chat: ' + err);

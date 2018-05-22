@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getProfile = exports.getUsers = exports.getUser = exports.updatePrefs = exports.profileUpdate = exports.updateUser = exports.signup = exports.signin = exports.match = undefined;
+exports.getProfile = exports.getUsers = exports.getUser = exports.updatePrefs = exports.profileUpdate = exports.updateUser = exports.signout = exports.signup = exports.signin = exports.match = undefined;
 
 var _jwtSimple = require('jwt-simple');
 
@@ -12,6 +12,10 @@ var _jwtSimple2 = _interopRequireDefault(_jwtSimple);
 var _user = require('../models/user');
 
 var _user2 = _interopRequireDefault(_user);
+
+var _chats = require('../models/chats');
+
+var _chats2 = _interopRequireDefault(_chats);
 
 var _config = require('../config');
 
@@ -26,15 +30,14 @@ var maxUsers = 15;
 
 var match = exports.match = function match(req, res, next) {
   var targetId = req.body.targetId;
-  var userId = req.body.userId;
-  console.log('targetId: ' + targetId);
-  console.log('userId: ' + userId);
+  var userId = req.user._id.toString();
 
   _user2.default.findOne({ _id: targetId }).then(function (found) {
     if (found) {
-      console.log(found);
+      // console.log(found);
       // if its a match
       if (found.potentialMates.includes(userId)) {
+        console.log("we matched!!!!");
         res.send({ response: 'match' });
         // updated current active user
         _user2.default.findOne({ _id: userId }).then(function (foundActive) {
@@ -85,7 +88,20 @@ var match = exports.match = function match(req, res, next) {
             // / res.json("User does not exist");
           }
         });
+
+        // create a new Chat with both users in it
+        var newChat = new _chats2.default();
+        newChat.members = [targetId, userId];
+        newChat.mostRecentMessage = "You matched!";
+        newChat.lastUpdated = Date.now();
+        newChat.save().then(function () {
+          console.log('saved new chat for match');
+        }).catch(function (err) {
+          console.log('error creating new chat for match');
+          console.log(err);
+        });
       } else {
+        console.log("we didn't match yet!!");
         res.send({ response: 'no' });
 
         // update active user
@@ -150,7 +166,7 @@ var signup = exports.signup = function signup(req, res, next) {
       // user.location = {"coordinates": coords};
 
       user.save().then(function (result) {
-        res.send({ token: tokenForUser(result) });
+        res.send({ token: tokenForUser(result), user: result });
       }).catch(function (error) {
         console.log(error);
         res.status(420).send('Error saving user');
@@ -164,9 +180,18 @@ var signup = exports.signup = function signup(req, res, next) {
   });
 };
 
+var signout = exports.signout = function signout(req, res, next) {
+  req.logout();
+};
+
 var updateUser = exports.updateUser = function updateUser(req, res, next) {
+
   var update = {};
-  var email = req.body.email;
+  // const email = req.body.email;
+  var email = req.user.email;
+  if (email != req.params.email) {
+    return res.status(401).send("Unauthorized");
+  }
 
   for (var key in req.body) {
     update[key] = req.body[key];
@@ -188,7 +213,8 @@ var updateUser = exports.updateUser = function updateUser(req, res, next) {
 };
 
 var profileUpdate = exports.profileUpdate = function profileUpdate(req, res, next) {
-  var email = req.body.email;
+  var email = req.user.email;
+
   var firstName = req.body.firstName;
   //const imageURL = req.body.imageURL;
   var bio = req.body.bio;
@@ -235,7 +261,10 @@ var profileUpdate = exports.profileUpdate = function profileUpdate(req, res, nex
 };
 
 var updatePrefs = exports.updatePrefs = function updatePrefs(req, res, next) {
-  var email = req.body.email;
+  console.log("in updatePrefs");
+
+  var email = req.user.email;
+
   var gender = req.body.gender;
   var runLength = req.body.runLength;
   var age = req.body.age;
@@ -244,8 +273,7 @@ var updatePrefs = exports.updatePrefs = function updatePrefs(req, res, next) {
   _user2.default.findOne({ email: email }).then(function (found) {
     if (found) {
       var preferences = found.preferences;
-      console.log("found user with following preferences: ");
-      console.log(preferences);
+
       preferences.gender = gender;
       preferences.runLength = runLength;
       preferences.age = age;
@@ -283,7 +311,6 @@ training buddy
 
 function sortUsers(activeUser, users, preferences) {
   var sortedUsers = [];
-
   var strava = void 0,
       nike = void 0,
       appleHealthKit = void 0,
@@ -299,8 +326,10 @@ function sortUsers(activeUser, users, preferences) {
       appleHealthKit === true;
     }
   }
+
   return new Promise(function (fulfill, reject) {
     for (var key in users) {
+      recommendationText = "";
       var user = users[key];
       var userPoints = 0;
       if (sortedUsers.length >= maxUsers) {
@@ -311,33 +340,29 @@ function sortUsers(activeUser, users, preferences) {
         continue;
       }
       // Sort by gender
-      if (preferences.gender == "Female" || preferences.gender == "Male") {
-        if (user.gender !== preferences.gender) {
-          continue;
-        }
-      };
 
-      // If not in age range
-      if (!(preferences.age[0] <= user.age) || !(preferences.age[1] >= user.age)) {
-        console.log("not in age range");
-        continue;
+      if (!(typeof user.gender === "undefined") && !(typeof activeUser.preferences.gender === "undefined")) {
+        var genderPref = activeUser.preferences.gender.join('|').toLowerCase().split('|');
+
+        if (!genderPref.includes(user.gender.toLowerCase())) {
+          continue;
+        };
       }
 
-      console.log('should be true: ', "desiredGoals" in activeUser);
-      console.log('should be true data: ', "data" in activeUser);
+      // If not in age range
+      if (activeUser.preferences.age[1] < user.age || activeUser.preferences.age[0] > user.age) {
+        continue;
+      }
 
       // Check which if any desired goals are the same
       if ('desiredGoals' in activeUser && 'desiredGoals' in user) {
         for (var index in user.desiredGoals) {
           var goal = user.desiredGoals[index];
-          console.log(goal);
           if (activeUser.desiredGoals.includes(goal)) {
             userPoints += 10;
-
-            if (recommendationText == undefined) {
-              recommendationText = 'You both want to ' + goal;
+            if (recommendationText == "") {
+              recommendationText = 'You both are looking for ' + goal;
             }
-            console.log("added desired goal for", user);
           }
         }
       }
@@ -350,7 +375,7 @@ function sortUsers(activeUser, users, preferences) {
         ------------------------------------
         */
 
-        if ('averageRunLength' in activeUser && 'averageRunLength' in user) {
+        if ('averageRunLength' in activeUser.data && 'averageRunLength' in user.data) {
 
           /*
           If potential match's average run length is in user pref range,
@@ -359,10 +384,9 @@ function sortUsers(activeUser, users, preferences) {
           if (user.data.averageRunLength >= activeUser.preferences.runLength[0] && user.data.averageRunLength <= activeUser.preferences.runLength[1]) {
             userPoints += 10;
 
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s average run length is in your preferred range\'';
             }
-            console.log('added average run length for', user);
           }
 
           /*
@@ -375,15 +399,13 @@ function sortUsers(activeUser, users, preferences) {
               if (user.data.averageRunLength < activeUser.preferences.runLength[0]) {
                 lengthDifference = activeUser.preferences.runLength[0] - user.data.averageRunLength;
                 userPoints += 10 - 3 * user.data.averageRunLength;
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = user.firstName + '\'s average run length is slightly below your preferred average run length range';
                 }
-
-                console.log('added average run length for', user);
               } else {
                 lengthDifference = activeUser.preferences.runLength[1] - user.data.averageRunLength;
                 userPoints += 10 + 1.5 * user.data.averageRunLength;
-                if (recommendationText == undefined) {
+                if (recommendationText == "") {
                   recommendationText = user.firstName + '\'s average run length is slightly above your preferred average run length range';
                 }
               }
@@ -397,19 +419,19 @@ function sortUsers(activeUser, users, preferences) {
 
           if (user.data.averageRunLength === activeUser.data.averageRunLength) {
             userPoints += 10;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s average run length is the same as your average run length';
             }
           } else if (user.data.averageRunLength < activeUser.data.averageRunLength) {
             var runningLengthDifference = activeUser.data.averageRunLength - user.data.averageRunLength;
             userPoints += 10 + 2 * runningLengthDifference;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s average run length is slightly below your average run length';
             }
           } else {
             var _runningLengthDifference = user.data.averageRunLength - activeUser.data.averageRunLength;
             userPoints += 10 - 2 * _runningLengthDifference;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s average run length is slightly above your average run length';
             }
           }
@@ -421,22 +443,22 @@ function sortUsers(activeUser, users, preferences) {
         ------------------------------------
         */
 
-        if ('runsPerWeek' in activeUser && 'runsPerWeek' in user) {
+        if ('runsPerWeek' in activeUser.data && 'runsPerWeek' in user.data) {
           if (user.data.runsPerWeek === activeUser.data.runsPerWeek) {
             userPoints += 10;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s runs per week is equal to your runs per week';
             }
           } else if (user.data.runsPerWeek < activeUser.data.runsPerWeek) {
             var runsCountDifference = activeUser.data.runsPerWeek - user.data.runsPerWeek;
             userPoints += 10 + 3 * runsCountDifference;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s runs per week is slightly below your runs per week';
             }
           } else {
             var _runsCountDifference = user.data.runsPerWeek - activeUser.data.runsPerWeek;
             userPoints += 10 - 3 * _runsCountDifference;
-            if (recommendationText == undefined) {
+            if (recommendationText == "") {
               recommendationText = user.firstName + '\'s runs per week is slightly above your runs per week';
             }
           }
@@ -457,6 +479,14 @@ function sortUsers(activeUser, users, preferences) {
       //
       //   }
       // }
+      // console.log("------MATCH REASON------")
+      // console.log(user);
+      // console.log(recommendationText);
+
+      if (recommendationText == undefined) {
+        recommendationText = "";
+      }
+
       sortedUsers.push({ user: user, matchReason: recommendationText, score: userPoints });
     };
 
@@ -472,8 +502,9 @@ function sortUsers(activeUser, users, preferences) {
     var limitedUsersIndex = sortedUsersIndexes.slice(0, maxUsers);
     var sortedLimitedUsers = [];
     for (var i in limitedUsersIndex) {
-      var _index = limitedUsersIndex[i];
-      sortedLimitedUsers.push(sortedUsers[parseInt(_index)]);
+      var _index = Number(limitedUsersIndex[i]);
+      // console.log(limitedUsersIndex[i])
+      sortedLimitedUsers.push(sortedUsers[_index]);
     }
     fulfill(sortedLimitedUsers);
   });
@@ -485,56 +516,51 @@ function sortUsers(activeUser, users, preferences) {
 */
 
 var getUser = exports.getUser = function getUser(req, res) {
-  var email = req.body.email;
-  // console.log("email: " + email);
+  var email = req.query.email;
+
   _user2.default.findOne({ "email": email }).then(function (user) {
-    // console.log("FOUND USER:")
-    // console.log(user)
-    // console.log("---------")
     res.json(user);
   }).catch(function (error) {
-    console.log(error, 'find one ERROR');
     res.json({ error: error });
   });
 };
 
 var getUsers = exports.getUsers = function getUsers(req, res) {
 
-  if ('location' in req.query && 'email' in req.query) {
-    var email = req.query.email;
-    var location = req.query.location;
-    _user2.default.findOne({ 'email': email }).then(function (user) {
-      // console.log('USER IN GETUSERS: ', user);
-      var preferences = user.preferences;
+  // if (('location' in req.query) && ('email' in req.query)) {
+  // let email = req.query.email;
+  // let location = req.query.location;
+  var email = req.user.email;
+  var location = req.user.location;
 
-      // IN METERS
-      var maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
-      // location needs to be an array of floats [<long>, <lat>]
-      var query = _user2.default.find();
-      query.where('location').near({ center: { type: 'Point', coordinates: location }, maxDistance: maxDistance, spherical: true }).then(function (users) {
-        // DO SOMETHING WITH LIST OF NEARBY USERS
-        // Users Limited by MaxUsers
-        sortUsers(user, users, preferences).then(function (sortedUsers) {
-          res.json(sortedUsers);
-        }).catch(function (error) {
-          console.log('sorting error: ', error);
-          res.json(error);
-        });
-        // res.json(users);
+  _user2.default.findOne({ 'email': email }).then(function (user) {
+    // console.log('USER IN GETUSERS: ', user);
+    var preferences = user.preferences;
+
+    // IN METERS
+    var maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
+    // location needs to be an array of floats [<long>, <lat>]
+    var query = _user2.default.find();
+    query.where('location').near({ center: { type: 'Point', coordinates: location }, maxDistance: maxDistance, spherical: true }).then(function (users) {
+      // DO SOMETHING WITH LIST OF NEARBY USERS
+      // Users Limited by MaxUsers
+      sortUsers(user, users, preferences).then(function (sortedUsers) {
+        res.json(sortedUsers);
       }).catch(function (error) {
-        console.log(error, 'query ');
-        res.json({ error: error });
+        res.json(error);
       });
-
-      // user.Update({'location': })
+      // res.json(users);
     }).catch(function (error) {
-      console.log(error, 'find one ERROR');
       res.json({ error: error });
     });
-  } else {
-    console.log("user does not exist");
-    res.json("user does not exist");
-  }
+
+    // user.Update({'location': })
+  }).catch(function (error) {
+    res.json({ error: error });
+  });
+  // } else {
+  //   res.json("user does not exist");
+  // }
 };
 
 var getProfile = exports.getProfile = function getProfile(req, res) {};

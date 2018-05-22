@@ -15,13 +15,16 @@ var _bcryptNodejs2 = _interopRequireDefault(_bcryptNodejs);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var UserSchema = new _mongoose.Schema({
-  firstName: String,
-  lastName: String,
-  imageURL: String,
-  images: [{ data: Buffer, contentType: String }],
-  bio: String,
-  gender: String,
-  age: Number,
+  firstName: { type: String, default: '' },
+  lastName: { type: String, default: '' },
+  imageURL: { type: String, default: '' },
+  images: {},
+  bio: { type: String, default: '' },
+  gender: { type: String, default: '' },
+  age: { type: Number, default: 0 },
+  birthMonth: { type: Number, default: 0 },
+  birthDay: { type: Number, default: 0 },
+  birthYear: { type: Number, default: 0 },
   location: {
     type: [],
     index: { type: '2dsphere', sparse: true },
@@ -32,26 +35,27 @@ var UserSchema = new _mongoose.Schema({
   mates: [],
   potentialMates: [],
   blockedMates: [],
+  emergencyContacts: [],
   seenProfiles: [{ userID: Number, date: String }],
   email: { type: String, unique: true, lowercase: true },
   password: String,
   token: String,
   preferences: {
-    gender: String,
-    runLength: [], // Range [minMiles, maxMiles]
-    age: [], // Range [minAge, maxAge]
-    proximity: Number
+    gender: { type: Array, default: ['Male', 'Female', 'Non-Binary'] }, // List of genders to have in preferences (female, male, non non-binary)
+    runLength: { type: Array, default: [0, 26] }, // Range [minMiles, maxMiles]
+    age: { type: Array, default: [18, 100] }, // Range [minAge, maxAge]
+    proximity: { type: Number, default: 80467 }
 
   },
   thirdPartyIds: {}, // {{ "third party name": 'ID'}}
   data: {
-    totalMilesRun: Number,
-    totalElevationClimbed: Number,
-    runsPerWeek: Number, // User Input
-    milesPerWeek: Number, // User input and/or MAYBE STRAVA/NIKE/APPLE?!
+    totalMilesRun: { type: Number, default: 0 },
+    totalElevationClimbed: { type: Number, default: 0 },
+    runsPerWeek: { type: Number, default: 0 }, // User Input
+    milesPerWeek: { type: Number, default: 0 }, // User input and/or MAYBE STRAVA/NIKE/APPLE?!
     racesDone: [],
-    averageRunLength: Number,
-    longestRun: String
+    averageRunLength: { type: Number, default: 0 },
+    longestRun: { type: String, default: '' }
   }
 }, {
   toJSON: {

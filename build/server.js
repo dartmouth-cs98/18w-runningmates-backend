@@ -77,13 +77,56 @@ app.get('/', function (req, res) {
   res.json({ message: 'welcome to running mates!' });
 });
 
+var userDictionary = {};
+var clients = [];
+
 io.on('connection', function (socket) {
   console.log('a user connected');
+  clients.push(socket.id);
+
+  socket.on('login', function (userInfo) {
+    // need to check if user is signed in on another device already
+    console.log('login socket');
+    userDictionary[userInfo] = socket.id;
+    console.log(userDictionary);
+  });
+
+  socket.on('logout', function (userInfo) {
+    // remove user/associated device from dictionary
+    delete userDictionary[userInfo];
+  });
+
+  // join a room identified by the chat ID
+  // code related to joining rooms developed with help from: https://gist.github.com/crtr0/2896891
+  socket.on('join room', function (chatID) {
+    console.log('joining room ' + chatID);
+
+    // leave room user was previously in
+    if (socket.room) {
+      socket.leave(socket.room);
+    }
+
+    socket.room = chatID;
+    socket.join(chatID);
+  });
 
   socket.on('chat message', function (msg) {
-    console.log('message: ' + msg);
-    io.emit('chat message', msg);
-    chatActions.saveNewMessage(msg);
+    var room = msg.chatID;
+    var recipient = msg.recipient;
+    var socketid = userDictionary[recipient];
+
+    io.sockets.in(room).emit('chat message', msg);
+
+    chatActions.saveNewMessage(msg, function () {
+      // https://stackoverflow.com/questions/24041220/sending-message-to-a-specific-id-in-socket-io-1-0
+
+      console.log("SOCKET ID: " + socketid);
+
+      if (io.sockets.connected[socketid]) {
+        console.log('socket ' + socketid + 'is connected');
+        io.sockets.connected[socketid].emit('message', 'hey, you got a message!');
+      }
+    });
   });
 });
 
