@@ -39,22 +39,24 @@ router.route('/signin').post(_passport.requireSignin, Users.signin);
 
 router.route('/signup').post(Users.signup);
 
+router.route('/signout').post(_passport.requireAuth, Users.signout);
+
 // router.get('/stravaAuthenticate', UserStrava.getStravaRedirect);
 // router.get('/stravaSignUp', UserStrava.getStravaToken);
 router.route('/stravaSignUp').post(UserStrava.getData);
 // router.post('/users/update', Users.updateUser);
-router.route('/sign-s3').get(_s2.default);
+router.route('/sign-s3').post(_s2.default);
 
 router.route('/users/:email').get(Users.getUser) // Get User
-.post(Users.updateUser); // Update User
+.post(_passport.requireAuth, Users.updateUser); // Update User
 
-router.route('/user/:email').get(Users.getUser).post(Users.profileUpdate);
 
-router.route('/users').get(Users.getUsers); // Get Users
-router.route('/prefs').post(Users.updatePrefs);
-router.route('/match').post(Users.match);
-router.route('/chatHistory').get(Chat.getChatHistory);
-router.route('/chats').get(Chat.getChatsList);
+router.route('/users').get(_passport.requireAuth, Users.getUsers); // Get Users
+// router.route('/prefs')
+//   .post(requireAuth, Users.updatePrefs);
+router.route('/match').post(_passport.requireAuth, Users.match);
+router.route('/chatHistory').get(_passport.requireAuth, Chat.getChatHistory);
+router.route('/chats').get(_passport.requireAuth, Chat.getChatsList);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 

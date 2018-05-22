@@ -27,7 +27,7 @@ router.route('/stravaSignUp')
   .post(UserStrava.getData);
 // router.post('/users/update', Users.updateUser);
 router.route('/sign-s3')
-  .get(signS3);
+  .post(signS3);
 
 router.route('/users/:email')
   .get(Users.getUser) // Get User
