@@ -29,8 +29,8 @@ const UserSchema = new Schema({
   token: String,
   preferences: {
     gender: { type: Array, default: ['Male', 'Female', 'Non-Binary'] }, // List of genders to have in preferences (female, male, non non-binary)
-    runLength: { type: Array, default: [0, 26] }, // Range [minMiles, maxMiles]
-    age: { type: Array, default: [18, 100] }, // Range [minAge, maxAge]
+    runLength: { type: Array, default: [0, 25] }, // Range [minMiles, maxMiles]
+    age: { type: Array, default: [18, 99] }, // Range [minAge, maxAge]
     proximity: { type: Number, default: 80467 },
 
   },
