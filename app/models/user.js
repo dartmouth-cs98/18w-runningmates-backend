@@ -5,7 +5,7 @@ const UserSchema = new Schema({
   firstName: { type: String, default: '' },
   lastName: { type: String, default: '' },
   imageURL: { type: String, default: '' },
-  images: {},
+  images: [],
   bio: { type: String, default: '' },
   gender: { type: String, default: '' },
   age: { type: Number, default: 0 },
