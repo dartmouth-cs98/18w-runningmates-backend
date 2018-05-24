@@ -181,7 +181,9 @@ var signup = exports.signup = function signup(req, res, next) {
 };
 
 var signout = exports.signout = function signout(req, res, next) {
+  console.log("signing out");
   req.logout();
+  res.json("Success signing out");
 };
 
 var updateUser = exports.updateUser = function updateUser(req, res, next) {
