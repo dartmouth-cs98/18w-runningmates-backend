@@ -19,7 +19,7 @@ export const match = (req, res, next) => {
       // console.log(found);
       // if its a match
       if (found.potentialMates.includes(userId)) {
-        console.log("we matched!!!!");
+        console.log('we matched!!!!');
         res.send({ response: 'match' });
         // updated current active user
         User.findOne({ _id: userId })
@@ -78,7 +78,7 @@ export const match = (req, res, next) => {
         // create a new Chat with both users in it
         const newChat = new Chat();
         newChat.members = [targetId, userId];
-        newChat.mostRecentMessage = "You matched!";
+        newChat.mostRecentMessage = 'You matched!';
         newChat.lastUpdated = Date.now();
         newChat.save().then(() => {
           console.log('saved new chat for match');
@@ -87,7 +87,7 @@ export const match = (req, res, next) => {
           console.log(err);
         });
       } else {
-        console.log("we didn't match yet!!");
+        console.log('we didn\'t match yet!!');
         res.send({ response: 'no' });
 
         // update active user
@@ -197,7 +197,7 @@ export const updateUser = (req, res, next) => {
   .then((found) => {
     if (found) {
       User.update({ email }, update).then((user) => {
-        res.send('updated user');
+        res.json('updated user');
       }).catch((error) => {
         console.log("error updating user");
         console.log(error);

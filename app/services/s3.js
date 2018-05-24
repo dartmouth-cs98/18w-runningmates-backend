@@ -15,6 +15,7 @@ const signS3 = (req, res) => {
   /*eslint-enable*/
   const fileNames = req.body.fileNames;
   const fileType = req.body.fileType;
+  console.log(fileNames);
   /* eslint-disable*/
   for (let key in fileNames) {
     if (fileNames[key]) {
