@@ -18,7 +18,7 @@ var UserSchema = new _mongoose.Schema({
   firstName: { type: String, default: '' },
   lastName: { type: String, default: '' },
   imageURL: { type: String, default: '' },
-  images: {},
+  images: [],
   bio: { type: String, default: '' },
   gender: { type: String, default: '' },
   age: { type: Number, default: 0 },
@@ -32,9 +32,10 @@ var UserSchema = new _mongoose.Schema({
   },
   desiredGoals: [], // Dropdown/Scroll
   swipes: { count: Number, date: String },
-  mates: [],
-  potentialMates: [],
-  blockedMates: [],
+  mates: {},
+  potentialMates: {},
+  requestsReceived: {},
+  blockedMates: {},
   emergencyContacts: [],
   seenProfiles: [{ userID: Number, date: String }],
   email: { type: String, unique: true, lowercase: true },
@@ -42,9 +43,9 @@ var UserSchema = new _mongoose.Schema({
   token: String,
   preferences: {
     gender: { type: Array, default: ['Male', 'Female', 'Non-Binary'] }, // List of genders to have in preferences (female, male, non non-binary)
-    runLength: { type: Array, default: [0, 26] }, // Range [minMiles, maxMiles]
-    age: { type: Array, default: [18, 100] }, // Range [minAge, maxAge]
-    proximity: { type: Number, default: 80467 }
+    runLength: { type: Array, default: [0, 25] }, // Range [minMiles, maxMiles]
+    age: { type: Array, default: [18, 99] }, // Range [minAge, maxAge]
+    proximity: { type: Number, default: 40233.6 }
 
   },
   thirdPartyIds: {}, // {{ "third party name": 'ID'}}
@@ -97,6 +98,17 @@ UserSchema.methods.comparePassword = function comparePassword(candidatePassword,
     }
 
     callback(null, isMatch);
+  });
+};
+
+UserSchema.query.friendRequests = function (ids) {
+  var length = ids.length;
+  var dbIds = [];
+  for (var i = 0; i < ids.length; i++) {
+    dbIds.push(_mongoose2.default.Types.ObjectId(String(ids[i])));
+  }
+  return this.find({
+    '_id': { $in: dbIds }
   });
 };
 /* eslint-enable */

@@ -33,6 +33,8 @@ router.route('/users/:email')
   .get(Users.getUser) // Get User
   .post(requireAuth, Users.updateUser); // Update User
 
+router.route('/friendRequests')
+  .get(requireAuth, Users.getFriendRequestUsers);
 
 router.route('/users')
   .get(requireAuth, Users.getUsers); // Get Users

@@ -12,27 +12,73 @@ const maxUsers = 15;
 export const match = (req, res, next) => {
   const targetId = req.body.targetId;
   const userId = req.user._id.toString();
-
+  const time = Date.now();
   User.findOne({ _id: targetId })
   .then((found) => {
     if (found) {
       // console.log(found);
       // if its a match
-      if (found.potentialMates.includes(userId)) {
-        console.log('we matched!!!!');
-        res.send({ response: 'match' });
+      if (userId in found.potentialMates) {
         // updated current active user
         User.findOne({ _id: userId })
         .then((foundActive) => {
           if (foundActive) {
-            const userMates = found.mates;
-            userMates.push(targetId);
+            const userMates = foundActive.mates || {};
+            const userRequestsReceived = foundActive.requestsReceived || {};
+            const userActivePotentialMates = foundActive.potentialMates || {};
+            if (targetId in userRequestsReceived) {
+              delete userRequestsReceived[targetId];
+            }
+            if (targetId in userActivePotentialMates) {
+              delete userActivePotentialMates[targetId];
+            }
+            userMates[targetId] = time;
             User.update({ _id: userId },
               {
                 mates: userMates,
+                requestsReceived: userRequestsReceived,
+                potentialMates: userActivePotentialMates,
               }).then((user) => {
-                console.log('successfully updated mates ');
-              // res.send('updated user');
+                res.send({ response: 'match' });
+                // update user they matched with
+                // delete from potentials (requests sent)
+                const targetPotentialMates = found.potentialMates || {};
+                const targetRequestsReceived = found.requestsReceived || {};
+
+                if (userId in targetPotentialMates) {
+                  delete targetPotentialMates[userId];
+                }
+                if (userId in targetRequestsReceived) {
+                  delete targetRequestsReceived[userId];
+                }
+                // mates
+                const targetMates = found.mates;
+                targetMates[userId] = foundActive;
+                // update
+                User.update({ _id: targetId },
+                  {
+                    mates: targetMates,
+                    potentialMates: targetPotentialMates,
+                    requestsReceived: targetRequestsReceived,
+                  }).then((targetUser) => {
+                    // create a new Chat with both users in it
+                    const newChat = new Chat();
+                    newChat.members = [targetId, userId];
+                    newChat.mostRecentMessage = 'You matched!';
+                    newChat.lastUpdated = Date.now();
+                    newChat.save().then(() => {
+                      console.log('saved new chat for match');
+                    }).catch((err) => {
+                      console.log('error creating new chat for match');
+                      console.log(err);
+                    });
+                    console.log('successfully updated user');
+                  // res.send('updated user');
+                  }).catch((error) => {
+                    console.log('error updating user');
+                    console.log(error);
+                  // res.status(500).json({error});
+                  });
               }).catch((error) => {
                 console.log('error updating user');
                 console.log(error);
@@ -43,77 +89,50 @@ export const match = (req, res, next) => {
             // res.json("User does not exist");
           }
         });
-        // update user they matched with
-        // delete from potentials
-        const targetPotentialMates = found.potentialMates;
-        const index = targetPotentialMates.indexOf(userId);
-        if (index !== -1) {
-          targetPotentialMates.splice(index, 1);
-        }
-        // mates
-        const targetMates = found.mates;
-        targetMates.push(userId);
-        // update
-        User.findOne({ _id: targetId })
-        .then((foundUpdate) => {
-          if (foundUpdate) {
-            User.update({ _id: targetId },
-              {
-                mates: targetMates,
-                potentialMates: targetPotentialMates,
-              }).then((user) => {
-                console.log('successfully updated user');
-              // res.send('updated user');
-              }).catch((error) => {
-                console.log('error updating user');
-                console.log(error);
-              // res.status(500).json({error});
-              });
-          } else {
-            console.log('user does not exist');
-            // / res.json("User does not exist");
-          }
-        });
-
-        // create a new Chat with both users in it
-        const newChat = new Chat();
-        newChat.members = [targetId, userId];
-        newChat.mostRecentMessage = 'You matched!';
-        newChat.lastUpdated = Date.now();
-        newChat.save().then(() => {
-          console.log('saved new chat for match');
-        }).catch((err) => {
-          console.log('error creating new chat for match');
-          console.log(err);
-        });
-      } else {
-        console.log('we didn\'t match yet!!');
+      } else { // Not mutual...yet
         res.send({ response: 'no' });
-
         // update active user
 
-        User.findOne({ _id: userId })
-        .then((foundPotential) => {
-          if (foundPotential) {
-            const userPotentialMates = found.potentialMates;
-            userPotentialMates.push(targetId);
-            User.update({ _id: userId },
-              {
-                potentialMates: userPotentialMates,
-              }).then((user) => {
-                console.log('successfully updated user');
-                console.log(user);
-              // res.send('updated user');
-              }).catch((error) => {
-                console.log('error updating user');
-                console.log(error);
-              // res.status(500).json({error});
-              });
-          } else {
-            console.log('user does not exist');
-            // res.json("User does not exist");
-          }
-        });
+        const foundRequestsReceived = found.requestsReceived || {};
+
+        if (!(userId in foundRequestsReceived)) {
+          foundRequestsReceived[userId] = time;
+        }
+
+        // update found user's received requests
+        User.update({ _id: targetId },
+          {
+            requestsReceived: foundRequestsReceived,
+          }).then((user) => {
+            User.findOne({ _id: userId })
+            .then((foundPotential) => {
+              if (foundPotential) {
+                const userPotentialMates = foundPotential.potentialMates;
+                userPotentialMates[targetId] = time;
+                User.update({ _id: userId },
+                  {
+                    potentialMates: userPotentialMates,
+                  }).then((userPotential) => {
+                    console.log('successfully updated user');
+                    console.log(userPotential);
+                  // res.send('updated user');
+                  }).catch((error) => {
+                    console.log('error updating user');
+                    console.log(error);
+                  // res.status(500).json({error});
+                  });
+              } else {
+                console.log('user does not exist');
+                // res.json("User does not exist");
+              }
+            });
+          // res.send('updated user');
+          }).catch((error) => {
+            console.log(error);
+          // res.status(500).json({error});
+          });
+
+        // Update user's requests
       }
     } else {
       console.log('user does not exist');
@@ -340,9 +359,14 @@ function sortUsers(activeUser, users, preferences) {
       for (let key in users) {
           recommendationText = ""
           let user = users[key];
+          console.log("Checking user: ", user);
           let userPoints = 0;
           if (sortedUsers.length >= maxUsers) {
             break;
+          }
+
+          if (activeUser._id in user.mates) {
+            continue;
           }
 
           if (activeUser.email == user.email) {
@@ -550,22 +574,36 @@ export const getUser = (req, res) => {
 
 };
 
+export const getFriendRequestUsers = (req, res) => {
+  console.log('made call', req.user);
+  const usersRequesting = req.user.requestsReceived;
+  const idsArray = Object.keys(usersRequesting);
+  User.find().friendRequests(idsArray)
+  .then((users) => {
+    console.log('found friend requests', users);
+    res.json(users);
+  })
+  .catch((error) => {
+    console.log('error in friend requesting', errors);
+    res.json({ error });
+  });
+
+};
 
 export const getUsers = (req, res) => {
 
   // if (('location' in req.query) && ('email' in req.query)) {
     // let email = req.query.email;
     // let location = req.query.location;
-    let email = req.user.email;
-    let location = req.user.location;
+    let email = req.query.email;
+    let location = req.query.location;
+    let maxDistance = req.query.maxDistance;
 
     User.findOne({'email': email})
     .then((user) => {
       // console.log('USER IN GETUSERS: ', user);
       let preferences = user.preferences;
-
-      // IN METERS
-      let maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
+      // Needs to be meters, convert from preferences.proximity
       // location needs to be an array of floats [<long>, <lat>]
       let query = User.find();
       query.where('location').near({ center: {type: 'Point', coordinates: location}, maxDistance: maxDistance, spherical: true })
