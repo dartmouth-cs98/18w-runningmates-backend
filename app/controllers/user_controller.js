@@ -12,6 +12,7 @@ const maxUsers = 15;
 export const match = (req, res, next) => {
   const targetId = req.body.targetId;
   const userId = req.user._id.toString();
+  console.log('User ID is: ', userId);
   const time = Date.now();
   User.findOne({ _id: targetId })
   .then((found) => {
