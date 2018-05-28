@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getProfile = exports.getUsers = exports.getUser = exports.updatePrefs = exports.profileUpdate = exports.updateUser = exports.signout = exports.signup = exports.signin = exports.match = undefined;
+exports.getProfile = exports.getUsers = exports.getFriendRequestUsers = exports.getUser = exports.updatePrefs = exports.profileUpdate = exports.updateUser = exports.signout = exports.signup = exports.signin = exports.match = undefined;
 
 var _jwtSimple = require('jwt-simple');
 
@@ -31,23 +31,26 @@ var maxUsers = 15;
 var match = exports.match = function match(req, res, next) {
   var targetId = req.body.targetId;
   var userId = req.user._id.toString();
-
+  var time = Date.now();
   _user2.default.findOne({ _id: targetId }).then(function (found) {
     if (found) {
       // console.log(found);
       // if its a match
-      if (found.potentialMates.includes(userId)) {
-        console.log("we matched!!!!");
+      if (userId in found.potentialMates) {
         res.send({ response: 'match' });
         // updated current active user
         _user2.default.findOne({ _id: userId }).then(function (foundActive) {
           if (foundActive) {
-            var userMates = found.mates;
-            userMates.push(targetId);
+            var userMates = foundActive.mates || {};
+            var userRequestsReceived = foundActive.requestsReceived || {};
+            if (targetId in userRequestsReceived) {
+              delete userRequestsReceived[targetId];
+            }
+            userMates[targetId] = time;
             _user2.default.update({ _id: userId }, {
-              mates: userMates
+              mates: userMates,
+              requestsReceived: userRequestsReceived
             }).then(function (user) {
-              console.log('successfully updated mates ');
               // res.send('updated user');
             }).catch(function (error) {
               console.log('error updating user');
@@ -60,39 +63,30 @@ var match = exports.match = function match(req, res, next) {
           }
         });
         // update user they matched with
-        // delete from potentials
+        // delete from potentials (requests sent)
         var targetPotentialMates = found.potentialMates;
-        var index = targetPotentialMates.indexOf(userId);
-        if (index !== -1) {
-          targetPotentialMates.splice(index, 1);
+        if (userId in targetPotentialMates) {
+          delete targetPotentialMates[userId];
         }
         // mates
         var targetMates = found.mates;
         targetMates.push(userId);
         // update
-        _user2.default.findOne({ _id: targetId }).then(function (foundUpdate) {
-          if (foundUpdate) {
-            _user2.default.update({ _id: targetId }, {
-              mates: targetMates,
-              potentialMates: targetPotentialMates
-            }).then(function (user) {
-              console.log('successfully updated user');
-              // res.send('updated user');
-            }).catch(function (error) {
-              console.log('error updating user');
-              console.log(error);
-              // res.status(500).json({error});
-            });
-          } else {
-            console.log('user does not exist');
-            // / res.json("User does not exist");
-          }
+        _user2.default.update({ _id: targetId }, {
+          mates: targetMates,
+          potentialMates: targetPotentialMates
+        }).then(function (user) {
+          console.log('successfully updated user');
+          // res.send('updated user');
+        }).catch(function (error) {
+          console.log('error updating user');
+          console.log(error);
+          // res.status(500).json({error});
         });
-
         // create a new Chat with both users in it
         var newChat = new _chats2.default();
         newChat.members = [targetId, userId];
-        newChat.mostRecentMessage = "You matched!";
+        newChat.mostRecentMessage = 'You matched!';
         newChat.lastUpdated = Date.now();
         newChat.save().then(function () {
           console.log('saved new chat for match');
@@ -101,15 +95,32 @@ var match = exports.match = function match(req, res, next) {
           console.log(err);
         });
       } else {
-        console.log("we didn't match yet!!");
+        // Not mutual...yet
         res.send({ response: 'no' });
-
         // update active user
 
+        var foundRequestsReceived = found.requestsReceived || {};
+
+        if (!(userId in foundRequestsReceived)) {
+          foundRequestsReceived[userId] = time;
+        }
+
+        // update found user's received requests
+        _user2.default.update({ _id: targetId }, {
+          requestsReceived: foundRequestsReceived
+        }).then(function (user) {
+          console.log(user);
+          // res.send('updated user');
+        }).catch(function (error) {
+          console.log(error);
+          // res.status(500).json({error});
+        });
+
+        // Update user's requests
         _user2.default.findOne({ _id: userId }).then(function (foundPotential) {
           if (foundPotential) {
             var userPotentialMates = found.potentialMates;
-            userPotentialMates.push(targetId);
+            userPotentialMates[targetId] = time;
             _user2.default.update({ _id: userId }, {
               potentialMates: userPotentialMates
             }).then(function (user) {
@@ -201,7 +212,7 @@ var updateUser = exports.updateUser = function updateUser(req, res, next) {
   _user2.default.findOne({ email: email }).then(function (found) {
     if (found) {
       _user2.default.update({ email: email }, update).then(function (user) {
-        res.send('updated user');
+        res.json('updated user');
       }).catch(function (error) {
         console.log("error updating user");
         console.log(error);
@@ -523,6 +534,19 @@ var getUser = exports.getUser = function getUser(req, res) {
   _user2.default.findOne({ "email": email }).then(function (user) {
     res.json(user);
   }).catch(function (error) {
+    res.json({ error: error });
+  });
+};
+
+var getFriendRequestUsers = exports.getFriendRequestUsers = function getFriendRequestUsers(req, res) {
+  var email = req.query.email;
+  var usersRequesting = req.body.friendRequests;
+  var idsArray = Object.keys(usersRequesting);
+  _user2.default.friendRequests(idsArray).then(function (users) {
+    console.log('found friend requests', users);
+    res.json(users);
+  }).catch(function (error) {
+    console.log('error in friend requesting', errors);
     res.json({ error: error });
   });
 };

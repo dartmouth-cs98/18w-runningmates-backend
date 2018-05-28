@@ -19,9 +19,10 @@ const UserSchema = new Schema({
   },
   desiredGoals: [],  // Dropdown/Scroll
   swipes: { count: Number, date: String },
-  mates: [],
-  potentialMates: [],
-  blockedMates: [],
+  mates: {},
+  potentialMates: {},
+  requestsReceived: {},
+  blockedMates: {},
   emergencyContacts: [],
   seenProfiles: [{ userID: Number, date: String }],
   email: { type: String, unique: true, lowercase: true },
@@ -31,7 +32,7 @@ const UserSchema = new Schema({
     gender: { type: Array, default: ['Male', 'Female', 'Non-Binary'] }, // List of genders to have in preferences (female, male, non non-binary)
     runLength: { type: Array, default: [0, 25] }, // Range [minMiles, maxMiles]
     age: { type: Array, default: [18, 99] }, // Range [minAge, maxAge]
-    proximity: { type: Number, default: 80467 },
+    proximity: { type: Number, default: 40233.6 },
 
   },
   thirdPartyIds: {},  // {{ "third party name": 'ID'}}
@@ -79,6 +80,17 @@ UserSchema.methods.comparePassword = function comparePassword(candidatePassword,
     if (err) { return callback(err); }
 
     callback(null, isMatch);
+  });
+};
+
+UserSchema.query.friendRequests = function (ids) {
+  let length = ids.length;
+  let dbIds = [];
+  for (let i = 0; i < ids.length; i++) {
+    dbIds.push(mongoose.Types.ObjectId(String(ids[i])));
+  }
+  return this.find({
+    '_id': { $in: dbIds}
   });
 };
 /* eslint-enable */
