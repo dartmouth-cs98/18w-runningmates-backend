@@ -1,4 +1,5 @@
 npm-debug.log*
 public/build
 node_modules
+.env
 .npm

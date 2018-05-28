@@ -4,9 +4,12 @@ import cors from 'cors';
 import path from 'path';
 import mongoose from 'mongoose';
 
+import apiRouter from './router';
+import * as chatActions from './controllers/chat_controller';
+
 // initialize
 // DB Setup
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/cs52poll';
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/runningmates';
 mongoose.connect(mongoURI);
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
@@ -25,23 +28,84 @@ app.set('views', path.join(__dirname, '../app/views'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+app.use('/api', apiRouter);
 
-// default index route
-app.get('/', (req, res) => {
-<<<<<<< HEAD
-<<<<<<< HEAD
-  res.send('welcome to our runningmates site');
-=======
-  res.send('hi this is your Running mate');
->>>>>>> aab6b96db1a2d613b6ad8d0a468c1be59937fae5
-=======
-  res.send('hi this is your Running mate');
->>>>>>> aab6b96db1a2d613b6ad8d0a468c1be59937fae5
-});
+
+// // default index route
+// app.get('/', (req, res) => {
+//   res.sendFile(`${__dirname}/index.html`);
+//   // res.send('hi this is your Running mate');
+// });
 
 // START THE SERVER
 // =============================================================================
 const port = process.env.PORT || 9090;
-app.listen(port);
+// START THE SERVER
+// for chat, from tutorial: https://socket.io/get-started/chat/
+// https://stackoverflow.com/questions/17696801/express-js-app-listen-vs-server-listen
+// =============================================================================
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
+
+server.listen(port);
+
+app.get('/', (req, res) => {
+  res.json({ message: 'welcome to running mates!' });
+});
+
+
+const userDictionary = {};
+const clients = [];
+
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+  clients.push(socket.id);
+
+  socket.on('login', (userInfo) => {
+    // need to check if user is signed in on another device already
+    console.log('login socket');
+    userDictionary[userInfo] = socket.id;
+    console.log(userDictionary);
+  });
+
+  socket.on('logout', (userInfo) => {
+    // remove user/associated device from dictionary
+    delete userDictionary[userInfo];
+  });
+
+  // join a room identified by the chat ID
+  // code related to joining rooms developed with help from: https://gist.github.com/crtr0/2896891
+  socket.on('join room', (chatID) => {
+    console.log(`joining room ${chatID}`);
+
+    // leave room user was previously in
+    if (socket.room) {
+      socket.leave(socket.room);
+    }
+
+    socket.room = chatID;
+    socket.join(chatID);
+  });
+
+  socket.on('chat message', (msg) => {
+    const room = msg.chatID;
+    const recipient = msg.recipient;
+    const socketid = userDictionary[recipient];
+
+    io.sockets.in(room).emit('chat message', msg);
+
+    chatActions.saveNewMessage(msg, () => {
+      // https://stackoverflow.com/questions/24041220/sending-message-to-a-specific-id-in-socket-io-1-0
+
+      console.log("SOCKET ID: " + socketid);
+
+      if (io.sockets.connected[socketid]) {
+        console.log(`socket ${socketid}is connected`);
+        io.sockets.connected[socketid].emit('message', 'hey, you got a message!');
+      }
+    });
+  });
+});
 
 console.log(`listening on: ${port}`);
