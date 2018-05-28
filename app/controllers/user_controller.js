@@ -611,6 +611,8 @@ export const getUsers = (req, res) => {
       query.where('location').near({ center: {type: 'Point', coordinates: location}, maxDistance: maxDistance, spherical: true })
 
       .then((users) =>{
+        console.log('******************ussers');
+        console.log(users);
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Users Limited by MaxUsers
         console.log("before sortUsers: ", users);
