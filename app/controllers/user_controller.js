@@ -19,7 +19,7 @@ export const match = (req, res, next) => {
     if (found) {
       // console.log(found);
       // if its a match
-      if (userId in found.potentialMates) {
+      if (found.potentialMates && userId in found.potentialMates) {
         // updated current active user
         User.findOne({ _id: userId })
         .then((foundActive) => {
@@ -369,6 +369,9 @@ function sortUsers(activeUser, users, preferences) {
           }
 
           if (user.mates && activeUser._id in user.mates) {
+            continue
+          }
+          if (activeUser._id in user.mates) {
             continue;
           }
 
