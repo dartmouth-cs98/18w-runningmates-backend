@@ -344,7 +344,7 @@ training buddy
 function sortUsers(activeUser, users, preferences) {
   let sortedUsers =[];
   let strava, nike, appleHealthKit, recommendationText;
-  if (activeUser.hasOwnProperty('thirdPartyIds')) {
+  if (activeUser.hasOwnProperty('thirdPartyIds') && activeUser.thirdPartyIds) {
     if ("strava" in activeUser.thirdPartyIds) {
       strava === true;
     }
