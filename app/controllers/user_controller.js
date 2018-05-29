@@ -366,6 +366,9 @@ function sortUsers(activeUser, users, preferences) {
             break;
           }
 
+          if (user.mates && activeUser._id in user.mates) {
+            continue
+          }
           if (activeUser._id in user.mates) {
             continue;
           }
