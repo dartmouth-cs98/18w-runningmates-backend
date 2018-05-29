@@ -19,7 +19,8 @@ export const match = (req, res, next) => {
     if (found) {
       // console.log(found);
       // if its a match
-      if (userId in found.potentialMates) {
+      const property = Object.prototype.hasOwnProperty.call(found, 'potentialMates');
+      if (property && userId in found.potentialMates) {
         // updated current active user
         User.findOne({ _id: userId })
         .then((foundActive) => {
@@ -163,6 +164,7 @@ export const signup = (req, res, next) => {
 
   // Check that there is an email and a password
   if (!email || !password) {
+    console.log("Error with no email or password", email, password);
     return res.status(421).send('You must provide email and password');
   }
 
@@ -178,19 +180,20 @@ export const signup = (req, res, next) => {
 
       user.save()
         .then((result) => {
+          console.log("Result: ", result);
           res.send({ token: tokenForUser(result), user: result });
         })
         .catch((error) => {
-          console.log(error);
-          res.status(420).send('Error saving user');
+          console.log("HERE ERROR", error);
+          res.send(error);
 
         });
     } else {
-      res.status(422).send('User already exists');
+      res.send('User already exists');
     }
   })
   .catch((error) => {
-    console.log(error);
+    console.log("OTHER ERROR",error);
     res.json({ error });
   });
 };
@@ -344,7 +347,7 @@ training buddy
 function sortUsers(activeUser, users, preferences) {
   let sortedUsers =[];
   let strava, nike, appleHealthKit, recommendationText;
-  if (activeUser.hasOwnProperty('thirdPartyIds')) {
+  if (Object.prototype.hasOwnProperty.call.hasOwnProperty(activeUser, 'thirdPartyIds')) {
     if ("strava" in activeUser.thirdPartyIds) {
       strava === true;
     }
@@ -366,11 +369,9 @@ function sortUsers(activeUser, users, preferences) {
             break;
           }
 
-          if (user.mates && activeUser._id in user.mates) {
+          const matesProperty = Object.prototype.hasOwnProperty.call(found, 'mates');
+          if (matesProperty && activeUser._id in user.mates) {
             continue
-          }
-          if (activeUser._id in user.mates) {
-            continue;
           }
 
           if (activeUser.email == user.email) {

@@ -50,7 +50,7 @@ router.route('/sign-s3').post(_s2.default);
 router.route('/users/:email').get(Users.getUser) // Get User
 .post(_passport.requireAuth, Users.updateUser); // Update User
 
-router.route('/users/friendRequests').get(_passport.requireAuth, Users.getFriendRequestUsers);
+router.route('/friendRequests').get(_passport.requireAuth, Users.getFriendRequestUsers);
 
 router.route('/users').get(_passport.requireAuth, Users.getUsers); // Get Users
 // router.route('/prefs')
