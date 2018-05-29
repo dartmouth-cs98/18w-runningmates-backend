@@ -31,27 +31,70 @@ var maxUsers = 15;
 var match = exports.match = function match(req, res, next) {
   var targetId = req.body.targetId;
   var userId = req.user._id.toString();
+  console.log('User ID is: ', userId);
   var time = Date.now();
   _user2.default.findOne({ _id: targetId }).then(function (found) {
     if (found) {
       // console.log(found);
       // if its a match
       if (userId in found.potentialMates) {
-        res.send({ response: 'match' });
         // updated current active user
         _user2.default.findOne({ _id: userId }).then(function (foundActive) {
           if (foundActive) {
             var userMates = foundActive.mates || {};
             var userRequestsReceived = foundActive.requestsReceived || {};
+            var userActivePotentialMates = foundActive.potentialMates || {};
             if (targetId in userRequestsReceived) {
               delete userRequestsReceived[targetId];
+            }
+            if (targetId in userActivePotentialMates) {
+              delete userActivePotentialMates[targetId];
             }
             userMates[targetId] = time;
             _user2.default.update({ _id: userId }, {
               mates: userMates,
-              requestsReceived: userRequestsReceived
+              requestsReceived: userRequestsReceived,
+              potentialMates: userActivePotentialMates
             }).then(function (user) {
-              // res.send('updated user');
+              res.send({ response: 'match' });
+              // update user they matched with
+              // delete from potentials (requests sent)
+              var targetPotentialMates = found.potentialMates || {};
+              var targetRequestsReceived = found.requestsReceived || {};
+
+              if (userId in targetPotentialMates) {
+                delete targetPotentialMates[userId];
+              }
+              if (userId in targetRequestsReceived) {
+                delete targetRequestsReceived[userId];
+              }
+              // mates
+              var targetMates = found.mates;
+              targetMates[userId] = foundActive;
+              // update
+              _user2.default.update({ _id: targetId }, {
+                mates: targetMates,
+                potentialMates: targetPotentialMates,
+                requestsReceived: targetRequestsReceived
+              }).then(function (targetUser) {
+                // create a new Chat with both users in it
+                var newChat = new _chats2.default();
+                newChat.members = [targetId, userId];
+                newChat.mostRecentMessage = 'You matched!';
+                newChat.lastUpdated = Date.now();
+                newChat.save().then(function () {
+                  console.log('saved new chat for match');
+                }).catch(function (err) {
+                  console.log('error creating new chat for match');
+                  console.log(err);
+                });
+                console.log('successfully updated user');
+                // res.send('updated user');
+              }).catch(function (error) {
+                console.log('error updating user');
+                console.log(error);
+                // res.status(500).json({error});
+              });
             }).catch(function (error) {
               console.log('error updating user');
               console.log(error);
@@ -61,38 +104,6 @@ var match = exports.match = function match(req, res, next) {
             console.log('user does not exist');
             // res.json("User does not exist");
           }
-        });
-        // update user they matched with
-        // delete from potentials (requests sent)
-        var targetPotentialMates = found.potentialMates;
-        if (userId in targetPotentialMates) {
-          delete targetPotentialMates[userId];
-        }
-        // mates
-        var targetMates = found.mates;
-        targetMates.push(userId);
-        // update
-        _user2.default.update({ _id: targetId }, {
-          mates: targetMates,
-          potentialMates: targetPotentialMates
-        }).then(function (user) {
-          console.log('successfully updated user');
-          // res.send('updated user');
-        }).catch(function (error) {
-          console.log('error updating user');
-          console.log(error);
-          // res.status(500).json({error});
-        });
-        // create a new Chat with both users in it
-        var newChat = new _chats2.default();
-        newChat.members = [targetId, userId];
-        newChat.mostRecentMessage = 'You matched!';
-        newChat.lastUpdated = Date.now();
-        newChat.save().then(function () {
-          console.log('saved new chat for match');
-        }).catch(function (err) {
-          console.log('error creating new chat for match');
-          console.log(err);
         });
       } else {
         // Not mutual...yet
@@ -109,7 +120,26 @@ var match = exports.match = function match(req, res, next) {
         _user2.default.update({ _id: targetId }, {
           requestsReceived: foundRequestsReceived
         }).then(function (user) {
-          console.log(user);
+          _user2.default.findOne({ _id: userId }).then(function (foundPotential) {
+            if (foundPotential) {
+              var userPotentialMates = foundPotential.potentialMates;
+              userPotentialMates[targetId] = time;
+              _user2.default.update({ _id: userId }, {
+                potentialMates: userPotentialMates
+              }).then(function (userPotential) {
+                console.log('successfully updated user');
+                console.log(userPotential);
+                // res.send('updated user');
+              }).catch(function (error) {
+                console.log('error updating user');
+                console.log(error);
+                // res.status(500).json({error});
+              });
+            } else {
+              console.log('user does not exist');
+              // res.json("User does not exist");
+            }
+          });
           // res.send('updated user');
         }).catch(function (error) {
           console.log(error);
@@ -117,26 +147,6 @@ var match = exports.match = function match(req, res, next) {
         });
 
         // Update user's requests
-        _user2.default.findOne({ _id: userId }).then(function (foundPotential) {
-          if (foundPotential) {
-            var userPotentialMates = found.potentialMates;
-            userPotentialMates[targetId] = time;
-            _user2.default.update({ _id: userId }, {
-              potentialMates: userPotentialMates
-            }).then(function (user) {
-              console.log('successfully updated user');
-              console.log(user);
-              // res.send('updated user');
-            }).catch(function (error) {
-              console.log('error updating user');
-              console.log(error);
-              // res.status(500).json({error});
-            });
-          } else {
-            console.log('user does not exist');
-            // res.json("User does not exist");
-          }
-        });
       }
     } else {
       console.log('user does not exist');
@@ -164,6 +174,7 @@ var signup = exports.signup = function signup(req, res, next) {
 
   // Check that there is an email and a password
   if (!email || !password) {
+    console.log("Error with no email or password", email, password);
     return res.status(421).send('You must provide email and password');
   }
 
@@ -177,16 +188,17 @@ var signup = exports.signup = function signup(req, res, next) {
       // user.location = {"coordinates": coords};
 
       user.save().then(function (result) {
+        console.log("Result: ", result);
         res.send({ token: tokenForUser(result), user: result });
       }).catch(function (error) {
-        console.log(error);
-        res.status(420).send('Error saving user');
+        console.log("HERE ERROR", error);
+        res.send(error);
       });
     } else {
-      res.status(422).send('User already exists');
+      res.send('User already exists');
     }
   }).catch(function (error) {
-    console.log(error);
+    console.log("OTHER ERROR", error);
     res.json({ error: error });
   });
 };
@@ -344,9 +356,17 @@ function sortUsers(activeUser, users, preferences) {
     for (var key in users) {
       recommendationText = "";
       var user = users[key];
+      console.log("Checking user: ", user);
       var userPoints = 0;
       if (sortedUsers.length >= maxUsers) {
         break;
+      }
+
+      if (user.mates && activeUser._id in user.mates) {
+        continue;
+      }
+      if (activeUser._id in user.mates) {
+        continue;
       }
 
       if (activeUser.email == user.email) {
@@ -539,10 +559,10 @@ var getUser = exports.getUser = function getUser(req, res) {
 };
 
 var getFriendRequestUsers = exports.getFriendRequestUsers = function getFriendRequestUsers(req, res) {
-  var email = req.query.email;
-  var usersRequesting = req.body.friendRequests;
+  console.log('made call', req.user);
+  var usersRequesting = req.user.requestsReceived;
   var idsArray = Object.keys(usersRequesting);
-  _user2.default.friendRequests(idsArray).then(function (users) {
+  _user2.default.find().friendRequests(idsArray).then(function (users) {
     console.log('found friend requests', users);
     res.json(users);
   }).catch(function (error) {
@@ -556,15 +576,14 @@ var getUsers = exports.getUsers = function getUsers(req, res) {
   // if (('location' in req.query) && ('email' in req.query)) {
   // let email = req.query.email;
   // let location = req.query.location;
-  var email = req.user.email;
-  var location = req.user.location;
+  var email = req.query.email;
+  var location = req.query.location;
+  var maxDistance = req.query.maxDistance;
 
   _user2.default.findOne({ 'email': email }).then(function (user) {
     // console.log('USER IN GETUSERS: ', user);
     var preferences = user.preferences;
-
-    // IN METERS
-    var maxDistance = 10000; // Needs to be meters, convert from preferences.proximity
+    // Needs to be meters, convert from preferences.proximity
     // location needs to be an array of floats [<long>, <lat>]
     var query = _user2.default.find();
     query.where('location').near({ center: { type: 'Point', coordinates: location }, maxDistance: maxDistance, spherical: true }).then(function (users) {
