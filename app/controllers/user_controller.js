@@ -163,7 +163,7 @@ export const signup = (req, res, next) => {
 
   // Check that there is an email and a password
   if (!email || !password) {
-    return res.status(421).send('You must provide email and password');
+    return res.status(421).json('You must provide email and password');
   }
 
   // Check if there exists a user with that email
@@ -357,6 +357,8 @@ function sortUsers(activeUser, users, preferences) {
   }
 
   return new Promise((fulfill, reject) => {
+      console.log("USERS IN PROMISE: ");
+      console.log(users);
       for (let key in users) {
           recommendationText = ""
           let user = users[key];
@@ -366,7 +368,7 @@ function sortUsers(activeUser, users, preferences) {
             break;
           }
 
-          if (activeUser._id in user.mates) {
+          if (user.mates && activeUser._id in user.mates) {
             continue;
           }
 
