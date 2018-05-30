@@ -17,7 +17,7 @@ export const match = (req, res, next) => {
   User.findOne({ _id: targetId })
   .then((found) => {
     if (found) {
-      // console.log(found);
+      console.log("found");
       // if its a match
       const property = Object.prototype.hasOwnProperty.call(found, 'potentialMates');
       if (property && userId in found.potentialMates) {
@@ -35,6 +35,8 @@ export const match = (req, res, next) => {
               delete userActivePotentialMates[targetId];
             }
             userMates[targetId] = time;
+            console.log("USER MATES: ");
+            console.log(userMates);
             User.update({ _id: userId },
               {
                 mates: userMates,
