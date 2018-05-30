@@ -603,7 +603,7 @@ export const getUsers = (req, res) => {
     // let email = req.query.email;
     // let location = req.query.location;
     let email = req.query.email;
-    let location = req.query.location;
+    let location = req.user.location;
     let maxDistance = req.query.maxDistance;
 
     User.findOne({'email': email})
