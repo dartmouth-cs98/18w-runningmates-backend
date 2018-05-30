@@ -58,10 +58,7 @@ function getStravaAthlete(token, athlete, user) {
   return new Promise((fulfill, reject) => {
     strava.athlete.get({ access_token: token }, (err, payload, limits) => {
       if (!err) {
-        const coords = [-147.349442, 64.751114];
         const imgUrl = payload.profile; 
-        const age = 21;
-        const bio = 'I\'m on Strava!';
         const preferences = {
           gender: 'All',
           runLength: [0, 10],
@@ -93,10 +90,7 @@ function getStravaAthlete(token, athlete, user) {
         // user.email = "briansfakeemail@gmail.com"; 
         // user.thirdPartyIds.push(payload.id);
         user.preferences = preferences;
-        user.bio = bio;
-        user.age = age;
         user.imageURL = imgUrl;
-        user.location = coords;
 
         if (!user.thirdPartyIds) {
           user.thirdPartyIds = {
@@ -387,6 +381,8 @@ export const getMatchingSegments = (req, res, next) => {
                                 title: targetSegments[keys[key]].title,
                                 id: keys[key],
                                 userElapsedTime: userSegments[keys[key]].elapsedTime,
+                                userTime: userSegments[keys[key]].timeString,
+                                targetTime: targetSegments[keys[key]].timeString,
                                 targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                                 targetPrRank: targetSegments[keys[key]].prRank,
                                 userPrRank: userSegments[keys[key]].prRank,
@@ -405,6 +401,8 @@ export const getMatchingSegments = (req, res, next) => {
                                 title: targetSegments[keys[key]].title,
                                 id: keys[key],
                                 userElapsedTime: null,
+                                userTime: null,
+                                targetTime: targetSegments[keys[key]].timeString,
                                 targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                                 targetPrRank: targetSegments[keys[key]].prRank,
                                 userPrRank: null,
@@ -420,6 +418,8 @@ export const getMatchingSegments = (req, res, next) => {
                                       title: targetSegments[keys[key]].title,
                                       id: keys[key],
                                       userElapsedTime: null,
+                                      userTime: null,
+                                      targetTime: targetSegments[keys[key]].timeString,
                                       targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                                       targetPrRank: targetSegments[keys[key]].prRank,
                                       userPrRank: null,
@@ -447,6 +447,8 @@ export const getMatchingSegments = (req, res, next) => {
                               title: targetSegments[keys[key]].title,
                               id: keys[key],
                               userElapsedTime: null,
+                              userTime: null,
+                              targetTime: targetSegments[keys[key]].timeString,
                               targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                               targetPrRank: targetSegments[keys[key]].prRank,
                               userPrRank: null,
@@ -462,6 +464,8 @@ export const getMatchingSegments = (req, res, next) => {
                                     title: targetSegments[keys[key]].title,
                                     id: keys[key],
                                     userElapsedTime: null,
+                                    userTime: null,
+                                    targetTime: targetSegments[keys[key]].timeString,
                                     targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                                     targetPrRank: targetSegments[keys[key]].prRank,
                                     userPrRank: null,
@@ -734,13 +738,18 @@ function listSegments(token, id, athlete) {
         if (payload.segment_efforts.length) {
           for (let segs = 0; segs < payload.segment_efforts.length; segs += 1) {
             const segmentId = payload.segment_efforts[segs].segment.id; 
+            const minutes = (payload.segment_efforts[segs].elapsed_time/60|0).toString();
+            const seconds = (payload.segment_efforts[segs].elapsed_time%60).toString();
+            const timeString = minutes + ':' + seconds; 
             if (!(segmentId in athlete.segments)) {
+              const distance = payload.segment_efforts[segs].segment.distance * 0.000621371;
               const segment = {
               title: payload.segment_efforts[segs].name,
               id: segmentId,
               elapsedTime: payload.segment_efforts[segs].elapsed_time,
+              timeString: timeString, 
               prRank: payload.segment_efforts[segs].pr_rank,
-              distance: payload.segment_efforts[segs].segment.distance,
+              distance: distance,
               komRank: payload.segment_efforts[segs].kom_rank,
               count: 1,
             };
