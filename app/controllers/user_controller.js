@@ -24,7 +24,13 @@ export const match = (req, res, next) => {
       console.log("found potential mates: ");
       console.log(found.potentialMates);
 
+      if (property) {
+        console.log("has property");
+      } else {
+        console.log("does not has property");
+      }
       if (property && userId in found.potentialMates) {
+        console.log("has property & user id");
         // updated current active user
         User.findOne({ _id: userId })
         .then((foundActive) => {
