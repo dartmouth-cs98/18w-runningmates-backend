@@ -54,7 +54,7 @@ export const match = (req, res, next) => {
                   delete targetRequestsReceived[userId];
                 }
                 // mates
-                const targetMates = found.mates;
+                const targetMates = found.mates || {};
                 targetMates[userId] = foundActive;
                 // update
                 User.update({ _id: targetId },
