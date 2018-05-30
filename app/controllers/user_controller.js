@@ -20,6 +20,10 @@ export const match = (req, res, next) => {
       console.log("found");
       // if its a match
       const property = Object.prototype.hasOwnProperty.call(found, 'potentialMates');
+
+      console.log("found potential mates: ");
+      console.log(found.potentialMates);
+
       if (property && userId in found.potentialMates) {
         // updated current active user
         User.findOne({ _id: userId })
