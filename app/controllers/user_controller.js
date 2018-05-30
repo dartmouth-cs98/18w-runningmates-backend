@@ -17,18 +17,9 @@ export const match = (req, res, next) => {
   User.findOne({ _id: targetId })
   .then((found) => {
     if (found) {
-      console.log("found");
       // if its a match
       const property = found.hasOwnProperty('potentialMates');
 
-      console.log("found potential mates: ");
-      console.log(found.potentialMates);
-
-      if (found.potentialMates) {
-        console.log("has property");
-      } else {
-        console.log("does not has property");
-      }
       if (found.potentialMates && userId in found.potentialMates) {
         console.log("has property & user id");
         // updated current active user
@@ -44,10 +35,9 @@ export const match = (req, res, next) => {
             if (targetId in userActivePotentialMates) {
               delete userActivePotentialMates[targetId];
             }
-            console.log("USER MATES before: ");
+
             userMates[targetId] = time;
-            console.log("USER MATES after: ");
-            console.log(userMates);
+
             User.update({ _id: userId },
               {
                 mates: userMates,
