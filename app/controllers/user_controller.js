@@ -116,7 +116,7 @@ export const match = (req, res, next) => {
             User.findOne({ _id: userId })
             .then((foundPotential) => {
               if (foundPotential) {
-                const userPotentialMates = foundPotential.potentialMates;
+                const userPotentialMates = foundPotential.potentialMates || {};
                 userPotentialMates[targetId] = time;
                 User.update({ _id: userId },
                   {
