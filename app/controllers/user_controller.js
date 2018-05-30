@@ -24,7 +24,7 @@ export const match = (req, res, next) => {
       console.log("found potential mates: ");
       console.log(found.potentialMates);
 
-      if (property) {
+      if (found.potentialMates) {
         console.log("has property");
       } else {
         console.log("does not has property");
