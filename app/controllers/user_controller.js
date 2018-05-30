@@ -19,7 +19,7 @@ export const match = (req, res, next) => {
     if (found) {
       console.log("found");
       // if its a match
-      const property = Object.prototype.hasOwnProperty.call(found, 'potentialMates');
+      const property = found.hasOwnProperty('potentialMates');
 
       console.log("found potential mates: ");
       console.log(found.potentialMates);
