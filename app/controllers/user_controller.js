@@ -34,8 +34,9 @@ export const match = (req, res, next) => {
             if (targetId in userActivePotentialMates) {
               delete userActivePotentialMates[targetId];
             }
+            console.log("USER MATES before: ");
             userMates[targetId] = time;
-            console.log("USER MATES: ");
+            console.log("USER MATES after: ");
             console.log(userMates);
             User.update({ _id: userId },
               {
