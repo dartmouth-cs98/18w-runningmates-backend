@@ -89,8 +89,8 @@ function getStravaAthlete(token, athlete, user) {
         user.firstName = payload.firstname;
         user.lastName = payload.lastname;
         user.gender = payload.sex;
-        //user.email = payload.email;
-        user.email = "briansfakeemail@gmail.com"; 
+        user.email = payload.email;
+        // user.email = "briansfakeemail@gmail.com"; 
         // user.thirdPartyIds.push(payload.id);
         user.preferences = preferences;
         user.bio = bio;
