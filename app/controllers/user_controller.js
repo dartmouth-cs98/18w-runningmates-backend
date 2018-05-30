@@ -29,7 +29,7 @@ export const match = (req, res, next) => {
       } else {
         console.log("does not has property");
       }
-      if (property && userId in found.potentialMates) {
+      if (found.potentialMates && userId in found.potentialMates) {
         console.log("has property & user id");
         // updated current active user
         User.findOne({ _id: userId })
