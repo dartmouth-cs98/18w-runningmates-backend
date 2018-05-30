@@ -10,17 +10,18 @@ const maxUsers = 15;
 // update mates
 
 export const match = (req, res, next) => {
-  const targetId = req.body.targetId;
+  const targetId = req.body.targetId.toString();
   const userId = req.user._id.toString();
   console.log('User ID is: ', userId);
   const time = Date.now();
   User.findOne({ _id: targetId })
   .then((found) => {
     if (found) {
-      // console.log(found);
       // if its a match
-      const property = Object.prototype.hasOwnProperty.call(found, 'potentialMates');
-      if (property && userId in found.potentialMates) {
+      const property = found.hasOwnProperty('potentialMates');
+
+      if (found.potentialMates && userId in found.potentialMates) {
+        console.log("has property & user id");
         // updated current active user
         User.findOne({ _id: userId })
         .then((foundActive) => {
@@ -34,7 +35,9 @@ export const match = (req, res, next) => {
             if (targetId in userActivePotentialMates) {
               delete userActivePotentialMates[targetId];
             }
+
             userMates[targetId] = time;
+
             User.update({ _id: userId },
               {
                 mates: userMates,
@@ -54,7 +57,7 @@ export const match = (req, res, next) => {
                   delete targetRequestsReceived[userId];
                 }
                 // mates
-                const targetMates = found.mates;
+                const targetMates = found.mates || {};
                 targetMates[userId] = foundActive;
                 // update
                 User.update({ _id: targetId },
@@ -109,7 +112,7 @@ export const match = (req, res, next) => {
             User.findOne({ _id: userId })
             .then((foundPotential) => {
               if (foundPotential) {
-                const userPotentialMates = foundPotential.potentialMates;
+                const userPotentialMates = foundPotential.potentialMates || {};
                 userPotentialMates[targetId] = time;
                 User.update({ _id: userId },
                   {
@@ -360,6 +363,8 @@ function sortUsers(activeUser, users, preferences) {
   }
 
   return new Promise((fulfill, reject) => {
+      console.log("USERS IN PROMISE: ");
+      console.log(users);
       for (let key in users) {
           recommendationText = ""
           let user = users[key];
@@ -369,7 +374,7 @@ function sortUsers(activeUser, users, preferences) {
             break;
           }
 
-          const matesProperty = Object.prototype.hasOwnProperty.call(found, 'mates');
+          const matesProperty = Object.prototype.hasOwnProperty.call(user, 'mates');
           if (matesProperty && activeUser._id in user.mates) {
             continue
           }
@@ -596,16 +601,17 @@ export const getFriendRequestUsers = (req, res) => {
 };
 
 export const getUsers = (req, res) => {
-
+    console.log("in getUsers");
   // if (('location' in req.query) && ('email' in req.query)) {
     // let email = req.query.email;
     // let location = req.query.location;
     let email = req.query.email;
-    let location = req.query.location;
+    let location = req.user.location;
     let maxDistance = req.query.maxDistance;
 
     User.findOne({'email': email})
     .then((user) => {
+      console.log("found one");
       // console.log('USER IN GETUSERS: ', user);
       let preferences = user.preferences;
       // Needs to be meters, convert from preferences.proximity
@@ -614,24 +620,31 @@ export const getUsers = (req, res) => {
       query.where('location').near({ center: {type: 'Point', coordinates: location}, maxDistance: maxDistance, spherical: true })
 
       .then((users) =>{
+        console.log('******************ussers');
+        console.log(users);
         // DO SOMETHING WITH LIST OF NEARBY USERS
         // Users Limited by MaxUsers
+        console.log("before sortUsers: ", users);
         sortUsers(user, users, preferences)
         .then((sortedUsers) => {
+          console.log("after sortUsers: ", sortUsers);
           res.json(sortedUsers);
         })
         .catch((error) => {
+          console.log("first catch: ", error);
           res.json(error);
         })
         // res.json(users);
       })
       .catch((error) => {
+        console.log("second catch: ", error);
         res.json({ error });
       });
 
       // user.Update({'location': })
     })
     .catch((error) => {
+      console.log("third catch: ", error);
       res.json({ error });
     });
   // } else {
