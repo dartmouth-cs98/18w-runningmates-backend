@@ -10,7 +10,7 @@ const maxUsers = 15;
 // update mates
 
 export const match = (req, res, next) => {
-  const targetId = req.body.targetId;
+  const targetId = req.body.targetId.toString();
   const userId = req.user._id.toString();
   console.log('User ID is: ', userId);
   const time = Date.now();
