@@ -92,6 +92,7 @@ function getStravaAthlete(token, athlete, user) {
         // user.thirdPartyIds.push(payload.id);
         user.preferences = preferences;
         user.imageURL = imgUrl;
+        user.images = [imgUrl];
 
         if (!user.thirdPartyIds) {
           user.thirdPartyIds = {
