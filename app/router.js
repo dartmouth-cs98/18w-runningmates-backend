@@ -25,6 +25,11 @@ router.route('/signout')
 // router.get('/stravaSignUp', UserStrava.getStravaToken);
 router.route('/stravaSignUp')
   .post(UserStrava.getData);
+
+router.route('/matchingSegments')
+  .post(UserStrava.getMatchingSegments);
+
+
 // router.post('/users/update', Users.updateUser);
 router.route('/sign-s3')
   .post(signS3);

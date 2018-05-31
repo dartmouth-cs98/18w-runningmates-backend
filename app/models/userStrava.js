@@ -35,12 +35,14 @@ const UserStravaSchema = new Schema({
   sTotalElapsedTime: Number,
   sTotalElevationGain: Number,
   koms: [],
-  createDate: String,
+  createDate: Date,
+  diffInDates: Number,
   listActivities: [{ id: String, name: String }],
-  listSegments:[{title: String, id: String, elapsedTime: Number, prRank: String, distance: Number, komRank: Number, count: Number}]
+  //listSegments:[{title: String, id: String, elapsedTime: Number, prRank: String, distance: Number, komRank: Number, count: Number}]
+  segments: {}
 });
 
 
-const UserStrava = mongoose.model('UserStrava', UserStravaSchema);
+const UserStravaModel = mongoose.model('UserStrava', UserStravaSchema);
 
-export default UserStrava;
+export default UserStravaModel;
