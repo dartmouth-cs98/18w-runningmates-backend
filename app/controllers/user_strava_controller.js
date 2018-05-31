@@ -15,8 +15,8 @@ function saveAthlete(athlete, res) {
     if (err) {
       console.log(error);
       return err;
-    } else { 
-      console.log(athlete); 
+    } else {
+      console.log(athlete);
     }
     // res.json(athlete );
   });
@@ -58,14 +58,8 @@ function getStravaAthlete(token, athlete, user) {
   return new Promise((fulfill, reject) => {
     strava.athlete.get({ access_token: token }, (err, payload, limits) => {
       if (!err) {
-<<<<<<< HEAD
-        const coords = [-147.349442, 64.751114];
         const imgUrl = payload.profile;
-        const age = 21;
-        const bio = 'I\'m on Strava!';
-=======
-        const imgUrl = payload.profile; 
->>>>>>> 3087e40c2af7b4c755c0bb5082af6c8795df9f95
+
         const preferences = {
           gender: 'All',
           runLength: [0, 10],
@@ -94,7 +88,7 @@ function getStravaAthlete(token, athlete, user) {
         user.lastName = payload.lastname;
         user.gender = payload.sex;
         user.email = payload.email;
-        // user.email = "briansfakeemail@gmail.com"; 
+        // user.email = "briansfakeemail@gmail.com";
         // user.thirdPartyIds.push(payload.id);
         user.preferences = preferences;
         user.imageURL = imgUrl;
@@ -170,10 +164,6 @@ function getStravaStats(token, totalActivityCount, objects) {
         // user data update
         objects[0].data.totalMilesRun = payload.all_run_totals.distance * 0.000621371;
         objects[0].data.totalElevationClimbed = payload.all_run_totals.elevation_gain;
-<<<<<<< HEAD
-=======
-
->>>>>>> 3087e40c2af7b4c755c0bb5082af6c8795df9f95
 
 
         console.log("Weeks on the service: ");
@@ -182,11 +172,9 @@ function getStravaStats(token, totalActivityCount, objects) {
         console.log("total runs: ");
         console.log(payload.all_run_totals.count);
         console.log("total miles: ");
-<<<<<<< HEAD
-        console.log(payload.all_run_totals.distance);
-=======
-        console.log(payload.all_run_totals.distance * 0.000621371); 
->>>>>>> 3087e40c2af7b4c755c0bb5082af6c8795df9f95
+
+        console.log(payload.all_run_totals.distance * 0.000621371);
+
         // runs per week
         let totalRunsPerWeek = payload.all_run_totals.count/ objects[1].diffDays / 7;
         let recentRunsPerWeek = payload.recent_run_totals.count/ 4;
@@ -198,21 +186,12 @@ function getStravaStats(token, totalActivityCount, objects) {
         console.log("runs Per week: ");
         console.log(objects[0].data.runsPerWeek);
 
-<<<<<<< HEAD
         // miles per week
-        let totalMilesPerWeek = objects[0].data.totalMilesRun/ objects[1].diffDays / 7;
-        let recentMilesPerWeek = payload.recent_run_totals.distance/4;
+        let totalMilesPerWeek = objects[0].data.totalMilesRun / objects[1].diffDays / 7;
+        let recentMilesPerWeek = payload.recent_run_totals.distance * 0.000621371/4;
         if (totalMilesPerWeek > recentMilesPerWeek){
           objects[0].data.milesPerWeek  = totalMilesPerWeek;
         } else {
-=======
-        // miles per week 
-        let totalMilesPerWeek = objects[0].data.totalMilesRun / objects[1].diffDays / 7;
-        let recentMilesPerWeek = payload.recent_run_totals.distance * 0.000621371/4; 
-        if (totalMilesPerWeek > recentMilesPerWeek){ 
-          objects[0].data.milesPerWeek  = totalMilesPerWeek; 
-        } else { 
->>>>>>> 3087e40c2af7b4c755c0bb5082af6c8795df9f95
           objects[0].data.milesPerWeek  = recentMilesPerWeek;
         }
         console.log("miles Per week: ");
@@ -220,15 +199,9 @@ function getStravaStats(token, totalActivityCount, objects) {
         // Average run length
         let totalAvgRun = 0;
         if (payload.all_run_totals.count == "Nan"){
-<<<<<<< HEAD
           totalAvgRun = 0;
         } else {
-          totalAvgRun = objects[0].data.totalMilesRun/payload.all_run_totals.count;
-=======
-          totalAvgRun = 0; 
-        } else { 
           totalAvgRun = objects[0].data.totalMilesRun /payload.all_run_totals.count;
->>>>>>> 3087e40c2af7b4c755c0bb5082af6c8795df9f95
         }
 
         objects[0].data.averageRunLength = totalAvgRun;
@@ -256,7 +229,7 @@ function getStravaKOMS(token, athlete) {
       const koms = new Array();
       const results = Object.keys(payload);
       console.log("kom bug");
-      console.log(results); 
+      console.log(results);
       console.log("results length");
       console.log(results.length)
       for (let i = 0; i < results.length; i++) {
@@ -373,38 +346,38 @@ export const getStravaToken = (req, res) => {
 export const getMatchingSegments = (req, res, next) => {
   console.log(req.body);
   const rmId = req.body.id;
-  const targetRmId = req.body.targetId; 
-  let targetSegments = {}; 
+  const targetRmId = req.body.targetId;
+  let targetSegments = {};
   let userSegments = {};
   let matchingSegments = [];
 
-  // target user 
+  // target user
   User.findOne({ _id: targetRmId })
   .then((targetUser) => {
     if (targetUser) {
       if (targetUser.thirdPartyIds){
         if("strava" in targetUser.thirdPartyIds){
-          const targetStravaId = targetUser.thirdPartyIds.strava; 
+          const targetStravaId = targetUser.thirdPartyIds.strava;
           UserStrava.findOne({ id: targetStravaId })
           .then ((targetStravaUser)=>{
             targetSegments = targetStravaUser.segments;
             console.log("targetSegments", targetSegments);
-            // user 
+            // user
             User.findOne({ _id: rmId })
             .then((user) => {
               if (user) {
                 if (user.thirdPartyIds){
                   if("strava" in user.thirdPartyIds){
-                    const userStravaId = user.thirdPartyIds.strava; 
+                    const userStravaId = user.thirdPartyIds.strava;
                     UserStrava.findOne({ id: userStravaId })
                     .then ((userStravaUser)=>{
                       userSegments = userStravaUser.segments;
-                      console.log("userSegments", userSegments); 
-                      if(targetSegments){ 
+                      console.log("userSegments", userSegments);
+                      if(targetSegments){
                         if (userSegments){
                           const keys = Object.keys(userSegments);
-                          console.log(keys);  
-                          for (var key in keys){ 
+                          console.log(keys);
+                          for (var key in keys){
                             console.log(targetSegments.hasOwnProperty(keys[key]));
                             if (targetSegments.hasOwnProperty(keys[key])){
                               const segment = {
@@ -420,11 +393,11 @@ export const getMatchingSegments = (req, res, next) => {
                                 targetCount: targetSegments[keys[key]].count
                               };
                               matchingSegments.push(segment);
-                              console.log("segment matches", segment); 
+                              console.log("segment matches", segment);
                             }
                           }
                           if (matchingSegments.length == 0){
-                            const keys = Object.keys(targetSegments);  
+                            const keys = Object.keys(targetSegments);
                             for (var key in keys){
                               if (matchingSegments.length < 5){
                                 const segment = {
@@ -441,7 +414,7 @@ export const getMatchingSegments = (req, res, next) => {
                               };
                               matchingSegments.push(segment);
                               } else {
-                                let x = 0;  
+                                let x = 0;
                                 while(x < 5){
                                   if (matchingSegments[x].targetCount < targetSegments[keys[key]].count){
                                     matchingSegments[x] = {
@@ -456,9 +429,9 @@ export const getMatchingSegments = (req, res, next) => {
                                       distance: targetSegments[keys[key]].distance,
                                       targetCount: targetSegments[keys[key]].count
                                     };
-                                    x = 5; 
+                                    x = 5;
                                   } else {
-                                    x = x + 1; 
+                                    x = x + 1;
                                   }
                                 }
                               }
@@ -467,10 +440,10 @@ export const getMatchingSegments = (req, res, next) => {
                           }
                           console.log("matching segments list: ", matchingSegments);
                           res.json(matchingSegments);
-                        } else { 
-                          // target is a strava users 
+                        } else {
+                          // target is a strava users
                           console.log("target is strava user is not: ", targetSegments);
-                          const keys = Object.keys(targetSegments);  
+                          const keys = Object.keys(targetSegments);
                           for (var key in keys){
                             if (matchingSegments.length < 5){
                               const segment = {
@@ -487,7 +460,7 @@ export const getMatchingSegments = (req, res, next) => {
                             };
                             matchingSegments.push(segment);
                             } else {
-                              let x = 0;  
+                              let x = 0;
                               while(x < 5){
                                 if (matchingSegments[x].targetCount < targetSegments[keys[key]].count){
                                   matchingSegments[x] = {
@@ -502,28 +475,28 @@ export const getMatchingSegments = (req, res, next) => {
                                     distance: targetSegments[keys[key]].distance,
                                     targetCount: targetSegments[keys[key]].count
                                   };
-                                  x = 5; 
+                                  x = 5;
                                 } else {
-                                  x = x + 1; 
+                                  x = x + 1;
                                 }
                               }
                             }
                           }
 
                         }
-                      } else { 
-                        console.log("neither are target users"); 
+                      } else {
+                        console.log("neither are target users");
                         res.json(matchingSegments);
                       }
                     })
-                  } else { 
+                  } else {
                     console.log("Strava is not a third party");
                     res.json(matchingSegments);
                   }
-                } else { 
-                  console.log("No third parties"); 
+                } else {
+                  console.log("No third parties");
                   console.log("target is strava user is not: ", targetSegments);
-                  const keys = Object.keys(targetSegments);  
+                  const keys = Object.keys(targetSegments);
                   for (var key in keys){
                     if (matchingSegments.length < 5){
                       const segment = {
@@ -538,7 +511,7 @@ export const getMatchingSegments = (req, res, next) => {
                     };
                     matchingSegments.push(segment);
                     } else {
-                      let x = 0;  
+                      let x = 0;
                       while(x < 5){
                         if (matchingSegments[x].targetCount < targetSegments[keys[key]].count){
                           matchingSegments[x] = {
@@ -551,18 +524,18 @@ export const getMatchingSegments = (req, res, next) => {
                             distance: targetSegments[keys[key]].distance,
                             targetCount: targetSegments[keys[key]].count
                           };
-                          x = 5; 
+                          x = 5;
                         } else {
-                          x = x + 1; 
+                          x = x + 1;
                         }
                       }
                     }
                   }
                 }
-              } else { 
+              } else {
                 console.log('user does not exist');
                 console.log("target is strava user is not: ", targetSegments);
-                const keys = Object.keys(targetSegments);  
+                const keys = Object.keys(targetSegments);
                 for (var key in keys){
                   if (matchingSegments.length < 5){
                     const segment = {
@@ -577,7 +550,7 @@ export const getMatchingSegments = (req, res, next) => {
                   };
                   matchingSegments.push(segment);
                   } else {
-                    let x = 0;  
+                    let x = 0;
                     while(x < 5){
                       if (matchingSegments[x].targetCount < targetSegments[keys[key]].count){
                         matchingSegments[x] = {
@@ -590,9 +563,9 @@ export const getMatchingSegments = (req, res, next) => {
                           distance: targetSegments[keys[key]].distance,
                           targetCount: targetSegments[keys[key]].count
                         };
-                        x = 5; 
+                        x = 5;
                       } else {
-                        x = x + 1; 
+                        x = x + 1;
                       }
                     }
                   }
@@ -600,47 +573,47 @@ export const getMatchingSegments = (req, res, next) => {
               }
             });
           })
-        } else { 
+        } else {
           console.log("Strava is not a third party");
           res.json(matchingSegments);
         }
-      } else { 
-        console.log("No third parties"); 
+      } else {
+        console.log("No third parties");
         res.json(matchingSegments);
       }
-    } else { 
+    } else {
       console.log('user does not exist');
       res.json(matchingSegments);
     }
   });
 
 
-  // user 
+  // user
   // User.findOne({ _id: rmId })
   // .then((user) => {
   //   if (user) {
   //     if (user.thirdPartyIds){
   //       if("strava" in user.thirdPartyIds){
-  //         const userStravaId = user.thirdPartyIds.strava; 
+  //         const userStravaId = user.thirdPartyIds.strava;
   //         UserStrava.findOne({ id: userStravaId })
   //         .then ((userStravaUser)=>{
   //           userSegments = userStravaUser.segments;
   //         })
-  //       } else { 
+  //       } else {
   //         console.log("Strava is not a third party");
   //       }
-  //     } else { 
-  //       console.log("No third parties"); 
+  //     } else {
+  //       console.log("No third parties");
   //     }
-  //   } else { 
+  //   } else {
   //     console.log('user does not exist');
   //   }
   // });
 
-  // if(targetSegments){ 
+  // if(targetSegments){
   //   if (userSegments){
-  //     const keys = Object.keys(userSegments); 
-  //     for (key in keys){ 
+  //     const keys = Object.keys(userSegments);
+  //     for (key in keys){
   //       if (key in targetSegments){
   //         const segment = {
   //           title: targetSegments[key].title,
@@ -652,18 +625,18 @@ export const getMatchingSegments = (req, res, next) => {
   //           distance: targetSegments[key]
   //         };
   //         matchingSegments.push(segment);
-  //         console.log("segment matches", segment); 
+  //         console.log("segment matches", segment);
   //       }
   //     }
   //     console.log("matching segments list: ", matchingSegments);
   //     res.json(matchingSegments)
-  //   } else { 
-  //     // target is a strava users 
+  //   } else {
+  //     // target is a strava users
   //     console.log("target is strava user is not: ", targetSegments);
 
   //   }
-  // } else { 
-  //   console.log("neither are target users"); 
+  // } else {
+  //   console.log("neither are target users");
   // }
 
 };
@@ -725,7 +698,7 @@ export const getData = (req, res, next) => {
 function cleanSegments(athlete, newSegList) {
   const listofIds = [];
   const listToAdd = [];
-  console.log("in clean segments"); 
+  console.log("in clean segments");
   return new Promise((fulfill, reject) => {
     newSegList.forEach((value, index) => {
       // let id = athlete.listSegments[index].id;
@@ -767,17 +740,17 @@ function listSegments(token, id, athlete) {
       if (!err) {
         if (payload.segment_efforts.length) {
           for (let segs = 0; segs < payload.segment_efforts.length; segs += 1) {
-            const segmentId = payload.segment_efforts[segs].segment.id; 
+            const segmentId = payload.segment_efforts[segs].segment.id;
             const minutes = (payload.segment_efforts[segs].elapsed_time/60|0).toString();
             const seconds = (payload.segment_efforts[segs].elapsed_time%60).toString();
-            const timeString = minutes + ':' + seconds; 
+            const timeString = minutes + ':' + seconds;
             if (!(segmentId in athlete.segments)) {
               const distance = payload.segment_efforts[segs].segment.distance * 0.000621371;
               const segment = {
               title: payload.segment_efforts[segs].name,
               id: segmentId,
               elapsedTime: payload.segment_efforts[segs].elapsed_time,
-              timeString: timeString, 
+              timeString: timeString,
               prRank: payload.segment_efforts[segs].pr_rank,
               distance: distance,
               komRank: payload.segment_efforts[segs].kom_rank,
@@ -788,7 +761,7 @@ function listSegments(token, id, athlete) {
               if (athlete.segments[segmentId].elapsedTime > payload.segment_efforts[segs].elapsed_time){
                 athlete.segments[segmentId].elapsedTime = payload.segment_efforts[segs].elapsed_time;
               }
-              athlete.segments[segmentId].count = athlete.segments[segmentId].count + 1; 
+              athlete.segments[segmentId].count = athlete.segments[segmentId].count + 1;
             }
             // console.log(segment);
           }
