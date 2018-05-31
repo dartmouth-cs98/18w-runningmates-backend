@@ -90,7 +90,8 @@ function getStravaAthlete(token, athlete, user) {
         // user.email = "briansfakeemail@gmail.com"; 
         // user.thirdPartyIds.push(payload.id);
         user.preferences = preferences;
-        user.imageURL = imgUrl;
+
+        user.images.push(imgUrl);
 
         if (!user.thirdPartyIds) {
           user.thirdPartyIds = {
