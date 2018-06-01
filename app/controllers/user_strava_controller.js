@@ -85,7 +85,6 @@ function getStravaAthlete(token, athlete, user) {
         var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
         athlete.diffDays = diffDays;  
 
-
         user.firstName = payload.firstname;
         user.lastName = payload.lastname;
         user.gender = payload.sex;
