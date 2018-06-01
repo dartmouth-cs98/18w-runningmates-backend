@@ -363,19 +363,22 @@ function sortUsers(activeUser, users, preferences) {
   }
 
   return new Promise((fulfill, reject) => {
-      console.log("USERS IN PROMISE: ");
-      console.log(users);
+
       for (let key in users) {
           recommendationText = ""
           let user = users[key];
-          console.log("Checking user: ", user);
+
           let userPoints = 0;
           if (sortedUsers.length >= maxUsers) {
             break;
           }
 
-          const matesProperty = Object.prototype.hasOwnProperty.call(user, 'mates');
-          if (matesProperty && activeUser._id in user.mates) {
+          // const matesProperty = Object.prototype.hasOwnProperty.call(user, 'mates');
+          if (user.mates && activeUser._id in user.mates) {
+            continue
+          }
+
+          if (user.potentialMates && activeUser._id in user.potentialMates) {
             continue
           }
 
