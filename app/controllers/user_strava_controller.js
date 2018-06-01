@@ -59,6 +59,9 @@ function getStravaAthlete(token, athlete, user) {
     strava.athlete.get({ access_token: token }, (err, payload, limits) => {
       if (!err) {
         const imgUrl = payload.profile; 
+        var userImages = []; 
+        userImages.push(imgUrl);
+        console.log("USERIMAGES: ", userImages); 
         const preferences = {
           gender: 'All',
           runLength: [0, 10],
@@ -91,7 +94,9 @@ function getStravaAthlete(token, athlete, user) {
         // user.thirdPartyIds.push(payload.id);
         user.preferences = preferences;
 
-        user.images.push(imgUrl);
+        user.images = userImages;
+
+        console.log("USER object images", user.images); 
 
         if (!user.thirdPartyIds) {
           user.thirdPartyIds = {
