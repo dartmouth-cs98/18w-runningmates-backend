@@ -58,8 +58,10 @@ function getStravaAthlete(token, athlete, user) {
   return new Promise((fulfill, reject) => {
     strava.athlete.get({ access_token: token }, (err, payload, limits) => {
       if (!err) {
-        const imgUrl = payload.profile;
 
+        const imgUrl = payload.profile; 
+        var userImages = []; 
+        userImages.push(imgUrl);
         const preferences = {
           gender: 'All',
           runLength: [0, 10],
@@ -83,7 +85,6 @@ function getStravaAthlete(token, athlete, user) {
         var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
         athlete.diffDays = diffDays;
 
-
         user.firstName = payload.firstname;
         user.lastName = payload.lastname;
         user.gender = payload.sex;
@@ -91,8 +92,10 @@ function getStravaAthlete(token, athlete, user) {
         // user.email = "briansfakeemail@gmail.com";
         // user.thirdPartyIds.push(payload.id);
         user.preferences = preferences;
+
+        user.images = userImages;
         user.imageURL = imgUrl;
-        user.images = [imgUrl];
+
 
         if (!user.thirdPartyIds) {
           user.thirdPartyIds = {
