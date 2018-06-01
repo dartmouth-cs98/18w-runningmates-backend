@@ -18,7 +18,7 @@ export const match = (req, res, next) => {
   .then((found) => {
     if (found) {
       // if its a match
-      const property = found.hasOwnProperty('potentialMates');
+      // const property = found.hasOwnProperty('potentialMates');
 
       if (found.potentialMates && userId in found.potentialMates) {
         console.log("has property & user id");
@@ -378,7 +378,7 @@ function sortUsers(activeUser, users, preferences) {
             continue
           }
 
-          if (user.potentialMates && activeUser._id in user.potentialMates) {
+          if (activeUser.potentialMates && user._id in activeUser.potentialMates) {
             continue
           }
 
