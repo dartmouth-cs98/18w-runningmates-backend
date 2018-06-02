@@ -2,7 +2,8 @@ import { Router } from 'express';
 import * as Users from './controllers/user_controller';
 import * as UserStrava from './controllers/user_strava_controller';
 import * as Chat from './controllers/chat_controller';
-import { requireSignin } from './services/passport';
+import * as SafeTrack from './controllers/safetrack_controller';
+import { requireAuth, requireSignin } from './services/passport';
 import signS3 from './services/s3';
 
 const router = Router();
@@ -43,7 +44,9 @@ router.route('/match')
 router.route('/chatHistory')
   .get(Chat.getChatHistory);
 router.route('/chats')
-  .get(Chat.getChatsList);
+  .get(requireAuth, Chat.getChatsList);
+router.route('/safetrack')
+  .get(SafeTrack.sendText);
 // below isnt working
 // router.post('/stavaUser', UserStrava.getAthlete); //in body have the strava id
 
