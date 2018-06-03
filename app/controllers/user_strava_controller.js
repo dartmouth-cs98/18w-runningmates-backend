@@ -462,6 +462,7 @@ export const getMatchingSegments = (req, res, next) => {
                               distance: targetSegments[keys[key]].distance,
                               targetCount: targetSegments[keys[key]].count
                             };
+                            console.log("matching segments list: ", matchingSegments);
                             matchingSegments.push(segment);
                             } else {
                               let x = 0;
@@ -486,7 +487,7 @@ export const getMatchingSegments = (req, res, next) => {
                               }
                             }
                           }
-
+                          res.json(matchingSegments);
                         }
                       } else {
                         console.log("neither are target users");
@@ -514,6 +515,7 @@ export const getMatchingSegments = (req, res, next) => {
                       targetCount: targetSegments[keys[key]].count
                     };
                     matchingSegments.push(segment);
+                    
                     } else {
                       let x = 0;
                       while(x < 5){
@@ -535,6 +537,7 @@ export const getMatchingSegments = (req, res, next) => {
                       }
                     }
                   }
+                  res.json(matchingSegments);
                 }
               } else {
                 console.log('user does not exist');
@@ -574,7 +577,11 @@ export const getMatchingSegments = (req, res, next) => {
                     }
                   }
                 }
+                res.json(matchingSegments);
               }
+            }).catch((error) => {
+              console.log("OTHER ERROR",error);
+              res.json({ error });
             });
           })
         } else {
@@ -589,6 +596,9 @@ export const getMatchingSegments = (req, res, next) => {
       console.log('user does not exist');
       res.json(matchingSegments);
     }
+  }).catch((error) => {
+    console.log("OTHER ERROR",error);
+    res.json({ error });
   });
 
 
