@@ -18,7 +18,7 @@ export const match = (req, res, next) => {
   .then((found) => {
     if (found) {
       // if its a match
-      const property = found.hasOwnProperty('potentialMates');
+      // const property = found.hasOwnProperty('potentialMates');
 
       if (found.potentialMates && userId in found.potentialMates) {
         console.log("has property & user id");
@@ -363,19 +363,22 @@ function sortUsers(activeUser, users, preferences) {
   }
 
   return new Promise((fulfill, reject) => {
-      console.log("USERS IN PROMISE: ");
-      console.log(users);
+
       for (let key in users) {
           recommendationText = ""
           let user = users[key];
-          console.log("Checking user: ", user);
+
           let userPoints = 0;
           if (sortedUsers.length >= maxUsers) {
             break;
           }
 
-          const matesProperty = Object.prototype.hasOwnProperty.call(user, 'mates');
-          if (matesProperty && activeUser._id in user.mates) {
+          // const matesProperty = Object.prototype.hasOwnProperty.call(user, 'mates');
+          if (user.mates && activeUser._id in user.mates) {
+            continue
+          }
+
+          if (activeUser.potentialMates && user._id in activeUser.potentialMates) {
             continue
           }
 
