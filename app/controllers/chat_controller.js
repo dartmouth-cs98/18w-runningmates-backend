@@ -123,7 +123,7 @@ export const getChatsList = (req, res) => {
             currentChat.recipients = names;
             currentChat.recipientIDs = ids;
             if (recipients.length > 0) {
-              currentChat.imageURL = recipients[0].imageURL
+              currentChat.imageURL = recipients[0].images[0];
             }
 
             resl(currentChat);
