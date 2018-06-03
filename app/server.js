@@ -96,6 +96,8 @@ io.on('connection', (socket) => {
     io.sockets.in(room).emit('chat message', msg);
 
     chatActions.saveNewMessage(msg, () => {
+      console.log(`SOCKET ID: ${socketid}`);
+      console.log(io.sockets.connected);
       // https://stackoverflow.com/questions/24041220/sending-message-to-a-specific-id-in-socket-io-1-0
 
       console.log("SOCKET ID: " + socketid);
