@@ -63,7 +63,7 @@ function getStravaAthlete(token, athlete, user) {
         var userImages = []; 
         userImages.push(imgUrl);
         const preferences = {
-          gender: 'All',
+          gender: ["Female", "Male", "Non-Binary"],
           runLength: [0, 10],
           age: [0, 100],
           proximity: 10000,
@@ -507,6 +507,8 @@ export const getMatchingSegments = (req, res, next) => {
                       const segment = {
                       title: targetSegments[keys[key]].title,
                       id: keys[key],
+                      userTime: null,
+                      targetTime: targetSegments[keys[key]].timeString,
                       userElapsedTime: null,
                       targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                       targetPrRank: targetSegments[keys[key]].prRank,
@@ -524,6 +526,8 @@ export const getMatchingSegments = (req, res, next) => {
                             title: targetSegments[keys[key]].title,
                             id: keys[key],
                             userElapsedTime: null,
+                            userTime: null,
+                            targetTime: targetSegments[keys[key]].timeString,
                             targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                             targetPrRank: targetSegments[keys[key]].prRank,
                             userPrRank: null,
@@ -549,6 +553,8 @@ export const getMatchingSegments = (req, res, next) => {
                     title: targetSegments[keys[key]].title,
                     id: keys[key],
                     userElapsedTime: null,
+                    userTime: null,
+                    targetTime: targetSegments[keys[key]].timeString,
                     targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                     targetPrRank: targetSegments[keys[key]].prRank,
                     userPrRank: null,
@@ -564,6 +570,8 @@ export const getMatchingSegments = (req, res, next) => {
                           title: targetSegments[keys[key]].title,
                           id: keys[key],
                           userElapsedTime: null,
+                          userTime: null,
+                          targetTime: targetSegments[keys[key]].timeString,
                           targetElapsedTime: targetSegments[keys[key]].elapsedTime,
                           targetPrRank: targetSegments[keys[key]].prRank,
                           userPrRank: null,
