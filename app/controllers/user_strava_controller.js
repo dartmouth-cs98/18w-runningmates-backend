@@ -502,7 +502,6 @@ export const getMatchingSegments = (req, res, next) => {
                   console.log("No third parties");
                   console.log("target is strava user is not: ", targetSegments);
                   const keys = Object.keys(targetSegments);
-                  
                   for (var key in keys){
                     if (matchingSegments.length < 5){
                       const segment = {
