@@ -1,11 +1,10 @@
 import jwt from 'jwt-simple';
-
+import bcrypt from 'bcrypt-nodejs';
 import User from '../models/user';
 import Chat from '../models/chats';
 import config from '../config';
 
 const maxUsers = 15;
-
 // update potentialMates
 // update mates
 
@@ -217,8 +216,24 @@ export const updateUser = (req, res, next) => {
   }
 
   for (let key in req.body) {
-    update[key] = req.body[key];
+    if (key === "password"){
+      bcrypt.genSalt(10, (err, salt) => {
+      if (err) { return next(err); }
+
+    // hash (encrypt) our password using the salt
+      bcrypt.hash(req.body[key], salt, null, (err, hash) => {
+        if (err) { return next(err); }
+
+      // overwrite plain text password with encrypted password
+        update[key] = hash;
+        return next();
+      });
+    });
+    } else {
+      update[key] = req.body[key];
+    }
   };
+  
   User.findOne({email})
   .then((found) => {
     if (found) {

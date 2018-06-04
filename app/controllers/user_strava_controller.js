@@ -66,7 +66,7 @@ function getStravaAthlete(token, athlete, user) {
           gender: ["Female", "Male", "Non-Binary"],
           runLength: [0, 25],
           age: [0, 100],
-          proximity: 10000,
+          proximity: 40233.6,
         };
 
         const objects = [];
