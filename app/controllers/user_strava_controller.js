@@ -64,7 +64,7 @@ function getStravaAthlete(token, athlete, user) {
         userImages.push(imgUrl);
         const preferences = {
           gender: ["Female", "Male", "Non-Binary"],
-          runLength: [0, 10],
+          runLength: [0, 25],
           age: [0, 100],
           proximity: 10000,
         };
